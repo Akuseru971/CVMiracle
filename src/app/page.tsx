@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 type AuthMode = "register" | "login";
 
@@ -55,6 +56,8 @@ export default function Home() {
     title: string;
   } | null>(null);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
+  const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
+  const [savingStructure, setSavingStructure] = useState(false);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
   const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
@@ -168,6 +171,21 @@ export default function Home() {
       title: data.application.title,
     });
     setActivePreviewIndex(templateChoices.indexOf(templateChoice));
+    setStructuredCv(data.preview?.structuredCv ?? null);
+  }
+
+  async function saveStructuredCv() {
+    if (!generatedApplication || !structuredCv) return;
+    setSavingStructure(true);
+    const res = await fetch(`/api/cv/${generatedApplication.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ structuredCv }),
+    });
+    setSavingStructure(false);
+    if (!res.ok) {
+      setError("Impossible d'enregistrer la structure CV.");
+    }
   }
 
   const activePreviewTemplate = templateChoices[activePreviewIndex] ?? templateChoices[0];
@@ -464,6 +482,141 @@ export default function Home() {
                   <p className="font-medium">Keywords intégrés:</p>
                   <p>{preview.keywordsIntegrated.join(", ")}</p>
                 </div>
+
+                {structuredCv ? (
+                  <div className="mt-4 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                      Mode hybride — corriger les sections avant export
+                    </p>
+
+                    <label className="mb-1 block text-xs font-medium">Professional Summary</label>
+                    <textarea
+                      className="mb-3 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                      value={structuredCv.summary}
+                      onChange={(e) =>
+                        setStructuredCv((prev) => (prev ? { ...prev, summary: e.target.value } : prev))
+                      }
+                    />
+
+                    <p className="mb-2 text-xs font-medium">Professional Experience</p>
+                    <div className="space-y-3">
+                      {structuredCv.experiences.map((experience, index) => (
+                        <div key={`${experience.title}-${index}`} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+                          <Input
+                            placeholder="Poste"
+                            value={experience.title}
+                            onChange={(e) =>
+                              setStructuredCv((prev) => {
+                                if (!prev) return prev;
+                                const experiences = [...prev.experiences];
+                                experiences[index] = { ...experiences[index], title: e.target.value };
+                                return { ...prev, experiences };
+                              })
+                            }
+                          />
+                          <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                            <Input
+                              placeholder="Entreprise — Lieu"
+                              value={experience.company}
+                              onChange={(e) =>
+                                setStructuredCv((prev) => {
+                                  if (!prev) return prev;
+                                  const experiences = [...prev.experiences];
+                                  experiences[index] = { ...experiences[index], company: e.target.value };
+                                  return { ...prev, experiences };
+                                })
+                              }
+                            />
+                            <Input
+                              placeholder="Dates"
+                              value={experience.date}
+                              onChange={(e) =>
+                                setStructuredCv((prev) => {
+                                  if (!prev) return prev;
+                                  const experiences = [...prev.experiences];
+                                  experiences[index] = { ...experiences[index], date: e.target.value };
+                                  return { ...prev, experiences };
+                                })
+                              }
+                            />
+                          </div>
+                          <textarea
+                            className="mt-2 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                            placeholder="1 bullet par ligne (max 4)"
+                            value={experience.bullets.join("\n")}
+                            onChange={(e) =>
+                              setStructuredCv((prev) => {
+                                if (!prev) return prev;
+                                const experiences = [...prev.experiences];
+                                experiences[index] = {
+                                  ...experiences[index],
+                                  bullets: e.target.value
+                                    .split("\n")
+                                    .map((line) => line.trim())
+                                    .filter(Boolean)
+                                    .slice(0, 4),
+                                };
+                                return { ...prev, experiences };
+                              })
+                            }
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                      <textarea
+                        className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        placeholder="Education (1 ligne par entrée)"
+                        value={structuredCv.education.join("\n")}
+                        onChange={(e) =>
+                          setStructuredCv((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  education: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                                }
+                              : prev,
+                          )
+                        }
+                      />
+                      <textarea
+                        className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        placeholder="Skills (1 ligne par entrée)"
+                        value={structuredCv.skills.join("\n")}
+                        onChange={(e) =>
+                          setStructuredCv((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  skills: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                                }
+                              : prev,
+                          )
+                        }
+                      />
+                      <textarea
+                        className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                        placeholder="Languages (1 ligne par entrée)"
+                        value={structuredCv.languages.join("\n")}
+                        onChange={(e) =>
+                          setStructuredCv((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  languages: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                                }
+                              : prev,
+                          )
+                        }
+                      />
+                    </div>
+
+                    <Button className="mt-3 w-full" variant="secondary" onClick={saveStructuredCv}>
+                      {savingStructure ? "Enregistrement..." : "Enregistrer la structure CV"}
+                    </Button>
+                  </div>
+                ) : null}
               </>
             ) : (
               <p className="text-sm text-slate-600 dark:text-slate-300">

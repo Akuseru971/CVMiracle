@@ -1,9 +1,11 @@
 import { normalizeTemplateChoice, type TemplateChoice } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 type BuildArgs = {
   title: string;
   originalResumeText: string;
   optimizedResumeText: string;
+  structuredCv?: StructuredCv;
   templateChoice: string;
   matchScore?: number;
   keywords?: string[];
@@ -315,8 +317,22 @@ function renderContactLine(contact: ContactInfo) {
   return parts.join(" • ");
 }
 
-function extractBlocks(optimizedResumeText: string) {
-  const structured = toStructuredCvData(optimizedResumeText);
+function extractBlocks(optimizedResumeText: string, structuredCv?: StructuredCv) {
+  const structured = structuredCv
+    ? {
+        summaryLines: structuredCv.summary ? [structuredCv.summary] : [],
+        experience: (structuredCv.experiences ?? []).map((entry) => ({
+          title: entry.title,
+          company: entry.company,
+          date: entry.date,
+          bullets: (entry.bullets ?? []).slice(0, 4),
+        })),
+        educationLines: structuredCv.education ?? [],
+        skillLines: structuredCv.skills ?? [],
+        languageLines: structuredCv.languages ?? [],
+        additionalLines: structuredCv.additional ?? [],
+      }
+    : toStructuredCvData(optimizedResumeText);
 
   return {
     summary: renderSummary(structured.summaryLines),
@@ -770,7 +786,7 @@ li { margin: 0; }
 export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const templateChoice = normalizeTemplateChoice(args.templateChoice);
   const template = buildTemplate(templateChoice);
-  const blocks = extractBlocks(args.optimizedResumeText);
+  const blocks = extractBlocks(args.optimizedResumeText, args.structuredCv);
   const contact = extractContact(args.originalResumeText);
   const additionalSection = blocks.additionalBlock
     ? `<div class="section-title">Additional</div>${blocks.additionalBlock}`

@@ -5,6 +5,7 @@ import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 import { normalizeTemplateChoice } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 export const runtime = "nodejs";
 
@@ -42,6 +43,7 @@ export async function GET(
   const decrypted = decryptText(application.optimizedCvEnc);
   const originalCvText = decryptText(application.originalCvEnc);
   let resumeTextForTemplate = decrypted;
+  let structuredCv: StructuredCv | undefined;
 
   try {
     const parsed = JSON.parse(decrypted) as {
@@ -50,11 +52,21 @@ export async function GET(
       fileName?: string;
       base64?: string;
       optimizedText?: string;
+      structuredCv?: StructuredCv;
     };
 
     if (parsed.kind === "pdf-asset") {
       if (parsed.optimizedText?.trim()) {
         resumeTextForTemplate = parsed.optimizedText;
+      }
+    }
+
+    if (parsed.kind === "structured-v1") {
+      if (parsed.optimizedText?.trim()) {
+        resumeTextForTemplate = parsed.optimizedText;
+      }
+      if (parsed.structuredCv) {
+        structuredCv = parsed.structuredCv;
       }
     }
   } catch {
@@ -67,6 +79,7 @@ export async function GET(
       title: application.title,
       originalResumeText: originalCvText,
       optimizedResumeText: resumeTextForTemplate,
+      structuredCv,
       templateChoice: normalizeTemplateChoice(forcedTemplateChoice ?? application.templateChoice),
       matchScore: application.matchScore,
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],

@@ -8,6 +8,7 @@ import { optimizeResumeWithAI } from "@/lib/openai";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
+import { parseStructuredCvFromText } from "@/lib/cv-structure";
 
 export const runtime = "nodejs";
 
@@ -59,7 +60,12 @@ export async function POST(request: Request) {
     templateChoice: parsed.data.templateChoice,
   });
 
-  const optimizedPayload = aiResult.optimizedResume;
+  const structuredCv = parseStructuredCvFromText(aiResult.optimizedResume);
+  const optimizedPayload = JSON.stringify({
+    kind: "structured-v1",
+    optimizedText: aiResult.optimizedResume,
+    structuredCv,
+  });
 
   const created = await prisma.$transaction(async (tx) => {
     const application = await tx.jobApplication.create({
@@ -97,6 +103,7 @@ export async function POST(request: Request) {
       optimizedResume: aiResult.optimizedResume,
       keywordsIntegrated: aiResult.keywordsIntegrated,
       missingSkills: aiResult.missingSkills,
+      structuredCv,
     },
   });
 }

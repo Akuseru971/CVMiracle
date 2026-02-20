@@ -2,11 +2,13 @@ import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { buildIntelligentResumeHtml } from "@/lib/template-engine";
 import type { TemplateChoice } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 type RenderArgs = {
   title: string;
   originalResumeText: string;
   optimizedResumeText: string;
+  structuredCv?: StructuredCv;
   templateChoice: TemplateChoice;
   matchScore?: number;
   keywords?: string[];
