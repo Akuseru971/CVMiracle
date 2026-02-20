@@ -46,7 +46,7 @@ export default function DashboardPage() {
     missingSkills: string[];
   } | null>(null);
 
-  const creditsLabel = useMemo(() => `${user?.credits ?? 0} crédit(s)`, [user?.credits]);
+  const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
   useEffect(() => {
     let cancelled = false;
@@ -138,18 +138,6 @@ export default function DashboardPage() {
     }
   }
 
-  async function buyPack(packCode: "pack_5" | "pack_10" | "pack_25") {
-    const res = await fetch("/api/billing/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ packCode }),
-    });
-    const data = await res.json();
-    if (res.ok && data.url) {
-      window.location.href = data.url;
-    }
-  }
-
   return (
     <div className="relative min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-white">
       <AnimatedBackground />
@@ -202,16 +190,13 @@ export default function DashboardPage() {
 
               {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
-              <Button className="w-full" disabled={loading || !user?.credits}>
+              <Button className="w-full" disabled={loading}>
                 {loading ? "Optimisation en cours..." : "Generate Optimized CV"}
               </Button>
             </form>
-
-            <div className="mt-5 grid gap-2 sm:grid-cols-3">
-              <Button variant="secondary" onClick={() => buyPack("pack_5")}>Achat 5 crédits</Button>
-              <Button variant="secondary" onClick={() => buyPack("pack_10")}>Achat 10 crédits</Button>
-              <Button variant="secondary" onClick={() => buyPack("pack_25")}>Achat 25 crédits</Button>
-            </div>
+            <p className="mt-4 text-xs text-slate-500 dark:text-slate-300">
+              Système de crédits en pause temporaire: génération illimitée activée.
+            </p>
           </Card>
 
           <Card>

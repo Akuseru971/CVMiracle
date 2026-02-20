@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { CreditReason } from "@prisma/client";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
 import { extractTextFromDocxBuffer, parseCvFile } from "@/lib/cv-parser";
@@ -33,11 +32,6 @@ export async function POST(request: Request) {
   const limiter = checkRateLimit(`generate:${user.id}`, 20, 60 * 60 * 1000);
   if (!limiter.allowed) {
     return NextResponse.json({ error: "Limite de génération atteinte" }, { status: 429 });
-  }
-
-  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { credits: true } });
-  if (!dbUser || dbUser.credits <= 0) {
-    return NextResponse.json({ error: "Crédits insuffisants" }, { status: 402 });
   }
 
   const formData = await request.formData();
@@ -102,15 +96,6 @@ export async function POST(request: Request) {
   }
 
   const created = await prisma.$transaction(async (tx) => {
-    const updated = await tx.user.updateMany({
-      where: { id: user.id, credits: { gt: 0 } },
-      data: { credits: { decrement: 1 } },
-    });
-
-    if (updated.count === 0) {
-      throw new Error("Crédits insuffisants");
-    }
-
     const application = await tx.jobApplication.create({
       data: {
         userId: user.id,
@@ -132,17 +117,6 @@ export async function POST(request: Request) {
         templateChoice: true,
         atsOptimized: true,
         createdAt: true,
-      },
-    });
-
-    await tx.creditTransaction.create({
-      data: {
-        userId: user.id,
-        delta: -1,
-        reason: CreditReason.CV_GENERATION,
-        meta: {
-          applicationId: application.id,
-        },
       },
     });
 

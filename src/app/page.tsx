@@ -223,7 +223,7 @@ export default function Home() {
           <div className="flex items-center gap-2">
             {user ? (
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                {user.fullName ?? user.email} • {user.credits} crédit(s)
+                {user.fullName ?? user.email} • Illimité (bêta)
               </p>
             ) : null}
             {!user ? (
@@ -243,7 +243,7 @@ export default function Home() {
           </h1>
           <p className="mb-8 max-w-2xl text-lg text-slate-600 dark:text-slate-300">
             Colle une offre d&apos;emploi, upload ton CV, et génère une version ATS ultra alignée en
-            quelques secondes. 3 crédits gratuits à l&apos;inscription.
+            quelques secondes. Génération illimitée activée temporairement.
           </p>
           <Button
             className="h-12 px-6 text-base"
