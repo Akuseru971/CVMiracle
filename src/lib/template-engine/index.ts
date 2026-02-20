@@ -9,7 +9,7 @@ type BuildArgs = {
   keywords?: string[];
 };
 
-type ResumeSection = {
+type RawResumeSection = {
   heading: string;
   lines: string[];
 };
@@ -76,13 +76,13 @@ function looksHeading(line: string) {
   return /^[A-ZÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸ][A-Za-zÀ-ÿ\s&/]{2,40}$/.test(clean) && !/[.;!?]/.test(clean);
 }
 
-function parseSections(text: string): ResumeSection[] {
+function parseSectionsRaw(text: string): RawResumeSection[] {
   const lines = text
     .split("\n")
     .map((line) => line.replace(/\t/g, " ").trim())
     .filter(Boolean);
-  const sections: ResumeSection[] = [];
-  let current: ResumeSection = { heading: "Summary", lines: [] };
+  const sections: RawResumeSection[] = [];
+  let current: RawResumeSection = { heading: "Summary", lines: [] };
 
   for (const line of lines) {
     if (looksHeading(line)) {
@@ -91,7 +91,7 @@ function parseSections(text: string): ResumeSection[] {
       continue;
     }
 
-    current.lines.push(line.replace(/^[-•▪◦]\s*/, "").trim());
+    current.lines.push(line);
   }
 
   if (current.lines.length > 0) sections.push(current);
@@ -179,19 +179,52 @@ function parseExperience(lines: string[]) {
   }
 
   if (current) entries.push(current);
-  return entries;
+  return entries.filter((entry) => entry.title.length > 1);
+}
+
+function inferExperienceFromUnstructuredLines(lines: string[]) {
+  const candidateLines: string[] = [];
+  const dateRegex = /(\b(?:19|20)\d{2}\b\s*[-–—]\s*(?:\b(?:19|20)\d{2}\b|Present|Current|Aujourd'hui|Now))/i;
+
+  for (const line of lines) {
+    const clean = line.trim();
+    if (!clean) continue;
+    if (looksHeading(clean)) continue;
+
+    if (
+      dateRegex.test(clean) ||
+      /^[•▪◦-]\s+/.test(clean) ||
+      /\s[—–-]\s/.test(clean) ||
+      /manager|engineer|developer|consultant|analyst|lead|director|coordinator|specialist/i.test(clean)
+    ) {
+      candidateLines.push(clean);
+    }
+  }
+
+  return parseExperience(candidateLines);
 }
 
 function toStructuredCvData(optimizedResumeText: string): StructuredCvData {
-  const sections = parseSections(optimizedResumeText);
+  const rawSections = parseSectionsRaw(optimizedResumeText);
+  const sections = rawSections.map((section) => ({
+    heading: section.heading,
+    lines: section.lines.map((line) => line.replace(/^[-•▪◦]\s*/, "").trim()),
+  }));
+
   const getLines = (...names: string[]) =>
     sections
       .filter((section) => names.includes(section.heading))
       .flatMap((section) => section.lines)
       .filter(Boolean);
 
+  const getRawLines = (...names: string[]) =>
+    rawSections
+      .filter((section) => names.includes(section.heading))
+      .flatMap((section) => section.lines)
+      .filter(Boolean);
+
   const summaryLines = getLines("Summary");
-  const experienceLines = getLines("Experience");
+  const experienceLinesRaw = getRawLines("Experience");
   const educationLines = getLines("Education", "Projects").slice(0, 14);
   const rawSkills = getLines("Skills");
   const rawLanguages = getLines("Languages");
@@ -218,9 +251,15 @@ function toStructuredCvData(optimizedResumeText: string): StructuredCvData {
     .filter((line) => line.length > 32)
     .slice(0, 3);
 
+  let experience = parseExperience(experienceLinesRaw);
+  if (experience.length === 0) {
+    const allRawLines = rawSections.flatMap((section) => section.lines);
+    experience = inferExperienceFromUnstructuredLines(allRawLines);
+  }
+
   return {
     summaryLines: summaryLines.length > 0 ? summaryLines.slice(0, 4) : fallbackSummary,
-    experience: parseExperience(experienceLines),
+    experience,
     educationLines,
     skillLines,
     languageLines,
@@ -239,7 +278,7 @@ function renderExperienceBlock(entries: ExperienceEntry[]) {
 
       return `<div class="job">
   <div class="job-header">
-    <div>
+    <div class="job-info">
       <div class="job-title">${escapeHtml(entry.title)}</div>
       ${entry.company ? `<div class="company">${escapeHtml(entry.company)}</div>` : ""}
     </div>
@@ -335,6 +374,10 @@ body{
   font-size:12px;
   font-weight:600;
 }
+.job-info{
+  display:flex;
+  flex-direction:column;
+}
 .company{
   font-size:11px;
   font-weight:500;
@@ -429,6 +472,10 @@ body{font-family:Inter;margin:0;}
   font-size:12px;
   font-weight:600;
 }
+.job-info{
+  display:flex;
+  flex-direction:column;
+}
 .company{
   font-size:11px;
   font-weight:500;
@@ -498,6 +545,10 @@ h2{
   align-items:baseline;
   font-size:11px;
   font-weight:600;
+}
+.job-info{
+  display:flex;
+  flex-direction:column;
 }
 .company{
   font-size:11px;
@@ -572,6 +623,10 @@ body{font-family:Inter;margin:0;color:#111;}
   align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.job-info{
+  display:flex;
+  flex-direction:column;
 }
 .company{
   font-size:11px;
@@ -651,6 +706,10 @@ body{
   align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.job-info{
+  display:flex;
+  flex-direction:column;
 }
 .company{
   font-size:11px;
