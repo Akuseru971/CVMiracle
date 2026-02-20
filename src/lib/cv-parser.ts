@@ -1,5 +1,5 @@
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
+import pdfParse from "pdf-parse";
 
 export async function extractCvText(file: File) {
   const arrayBuffer = await file.arrayBuffer();
@@ -7,9 +7,7 @@ export async function extractCvText(file: File) {
   const lowerName = file.name.toLowerCase();
 
   if (lowerName.endsWith(".pdf") || file.type.includes("pdf")) {
-    const parser = new PDFParse({ data: new Uint8Array(buffer) });
-    const parsed = await parser.getText();
-    await parser.destroy();
+    const parsed = await pdfParse(buffer);
     const text = parsed.text?.trim();
     if (!text) {
       throw new Error("PDF illisible");
