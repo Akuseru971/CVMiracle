@@ -68,7 +68,7 @@ export default function DashboardPage() {
     structuredCv?: StructuredCv;
   } | null>(null);
   const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
-  const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
+  const [structureSource, setStructureSource] = useState<"hybrid" | "hybrid-summaries" | "heuristic" | null>(null);
   const [hybridValidated, setHybridValidated] = useState(false);
   const [hybridModalOpen, setHybridModalOpen] = useState(false);
   const [, setLoadingStructure] = useState(false);
@@ -431,7 +431,7 @@ export default function DashboardPage() {
                     Vérifie et complète: Entreprise, Nom du poste, Dates, Lieu, Missions.
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-300">
-                    Source: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
+                    Source: {structureSource === "hybrid" || structureSource === "hybrid-summaries" ? "Hybride IA (résumés d'expériences) + heuristique" : "Heuristique"}
                   </p>
                 </div>
                 <Button variant="secondary" onClick={() => setHybridModalOpen(false)}>

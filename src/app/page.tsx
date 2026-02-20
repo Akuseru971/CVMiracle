@@ -78,7 +78,7 @@ export default function Home() {
   const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
   const [savingStructure, setSavingStructure] = useState(false);
   const [hybridModalOpen, setHybridModalOpen] = useState(false);
-  const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
+  const [structureSource, setStructureSource] = useState<"hybrid" | "hybrid-summaries" | "heuristic" | null>(null);
   const [preparingStructure, setPreparingStructure] = useState(false);
   const [hybridConfidence, setHybridConfidence] = useState<Record<string, number> | null>(null);
   const [overlapWarnings, setOverlapWarnings] = useState<string[]>([]);
@@ -792,7 +792,7 @@ export default function Home() {
                     Complète chaque expérience: Entreprise, Nom du poste, Dates, Lieu, Missions.
                   </p>
                   <p className="text-xs text-slate-500 dark:text-slate-300">
-                    Source: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
+                    Source: {structureSource === "hybrid" || structureSource === "hybrid-summaries" ? "Hybride IA (résumés d'expériences) + heuristique" : "Heuristique"}
                   </p>
                   {hybridConfidence ? (
                     <p className="text-xs text-slate-500 dark:text-slate-300">

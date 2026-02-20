@@ -336,3 +336,43 @@ Before returning the JSON, internally reason about the structure of the document
 
   return parsed.data as HybridCvForm;
 }
+
+export async function extractExperienceSummariesWithAI(args: {
+  cvText: string;
+  jobOfferText: string;
+}): Promise<string[] | null> {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const completion = await client.chat.completions.create({
+    model,
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "List all professional experiences found in the CV and write one clear concise summary sentence per experience. Keep role, company, location and dates coherent. Do not invent anything. If uncertain, keep it short and factual.",
+      },
+      {
+        role: "user",
+        content: `CV text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional):\n${args.jobOfferText.slice(0, 6000)}\n\nReturn plain text only. One experience per line. No JSON. No explanation.`,
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content?.trim();
+  if (!raw) {
+    return null;
+  }
+
+  const summaries = raw
+    .split("\n")
+    .map((line) => line.replace(/^\s*(?:[-*•]|\d+[.)-])\s*/, "").trim())
+    .filter(Boolean)
+    .slice(0, 20);
+
+  return summaries.length ? summaries : null;
+}
