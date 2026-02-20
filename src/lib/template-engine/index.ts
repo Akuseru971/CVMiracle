@@ -14,6 +14,19 @@ type ResumeSection = {
   lines: string[];
 };
 
+type ExperienceEntry = {
+  title: string;
+  date?: string;
+  bullets: string[];
+};
+
+type StructuredCvData = {
+  summaryLines: string[];
+  experience: ExperienceEntry[];
+  educationLines: string[];
+  skillLines: string[];
+};
+
 type ContactInfo = {
   email?: string;
   phone?: string;
@@ -40,24 +53,31 @@ function escapeHtml(value: string) {
 
 function normalizeHeading(heading: string) {
   const clean = heading.replace(/:$/, "").trim();
-  if (/^professional summary|summary|profil|profile|résumé|resume$/i.test(clean)) return "Summary";
-  if (/^work experience|experience|expérience|expériences$/i.test(clean)) return "Experience";
-  if (/^education|formation|formations$/i.test(clean)) return "Education";
-  if (/^skills|compétences|competences$/i.test(clean)) return "Skills";
+  if (/^professional summary|summary|profil|profile|résumé|resume|about$/i.test(clean)) return "Summary";
+  if (/^work experience|experience|expérience|expériences|employment|career$/i.test(clean)) return "Experience";
+  if (/^education|formation|formations|academic background$/i.test(clean)) return "Education";
+  if (/^skills|compétences|competences|technical skills|core skills$/i.test(clean)) return "Skills";
   if (/^projects?|projets?$/i.test(clean)) return "Projects";
   if (/^languages?|langues?$/i.test(clean)) return "Languages";
-  if (/^certifications?|certificats?$/i.test(clean)) return "Certifications";
+  if (/^certifications?|certificats?|licenses?$/i.test(clean)) return "Certifications";
   return clean;
 }
 
 function looksHeading(line: string) {
   const clean = line.replace(/:$/, "").trim();
-  if (!clean || clean.length > 42) return false;
-  return /^(Summary|Experience|Education|Skills|Projects|Languages|Certifications)$/i.test(normalizeHeading(clean));
+  if (!clean || clean.length > 54) return false;
+  const normalized = normalizeHeading(clean);
+  if (/^(Summary|Experience|Education|Skills|Projects|Languages|Certifications)$/i.test(normalized)) {
+    return true;
+  }
+  return /^[A-ZÀÂÄÇÉÈÊËÎÏÔÖÙÛÜŸ][A-Za-zÀ-ÿ\s&/]{2,40}$/.test(clean) && !/[.;!?]/.test(clean);
 }
 
 function parseSections(text: string): ResumeSection[] {
-  const lines = text.split("\n").map((line) => line.trim()).filter(Boolean);
+  const lines = text
+    .split("\n")
+    .map((line) => line.replace(/\t/g, " ").trim())
+    .filter(Boolean);
   const sections: ResumeSection[] = [];
   let current: ResumeSection = { heading: "Summary", lines: [] };
 
@@ -68,11 +88,18 @@ function parseSections(text: string): ResumeSection[] {
       continue;
     }
 
-    current.lines.push(line.replace(/^[-•▪◦]\s*/, ""));
+    current.lines.push(line.replace(/^[-•▪◦]\s*/, "").trim());
   }
 
   if (current.lines.length > 0) sections.push(current);
   return sections;
+}
+
+function splitSkillLine(line: string) {
+  return line
+    .split(/[,|•·]/g)
+    .map((chunk) => chunk.trim())
+    .filter((chunk) => chunk.length > 1);
 }
 
 function extractContact(text: string): ContactInfo {
@@ -89,17 +116,21 @@ function extractContact(text: string): ContactInfo {
 }
 
 function parseExperience(lines: string[]) {
-  const entries: Array<{ title: string; date?: string; bullets: string[] }> = [];
-  let current: { title: string; date?: string; bullets: string[] } | null = null;
+  const entries: ExperienceEntry[] = [];
+  let current: ExperienceEntry | null = null;
+  const dateRegex = /(\b(?:19|20)\d{2}\b\s*[-–—]\s*(?:\b(?:19|20)\d{2}\b|Present|Current|Aujourd'hui|Now))/i;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line) continue;
 
     const isBullet = /^[•▪◦-]\s*/.test(rawLine);
-    if (!isBullet) {
+    const hasDate = dateRegex.test(line);
+    const looksHeader = hasDate || /\||\s[—–-]\s/.test(line) || line.length < 90;
+
+    if (!isBullet && looksHeader) {
       if (current) entries.push(current);
-      const date = line.match(/(\d{4}\s*[-–]\s*(?:\d{4}|Present|Current|Aujourd'hui))/i)?.[0];
+      const date = line.match(dateRegex)?.[0];
       const clean = date ? line.replace(date, "").replace(/[|·•-]\s*$/, "").trim() : line;
       current = { title: clean, date, bullets: [] };
       continue;
@@ -110,15 +141,46 @@ function parseExperience(lines: string[]) {
       continue;
     }
 
-    current.bullets.push(line.replace(/^[-•▪◦]\s*/, ""));
+    current.bullets.push(line.replace(/^[-•▪◦]\s*/, "").trim());
   }
 
   if (current) entries.push(current);
   return entries;
 }
 
-function renderExperienceBlock(lines: string[]) {
-  const entries = parseExperience(lines);
+function toStructuredCvData(optimizedResumeText: string): StructuredCvData {
+  const sections = parseSections(optimizedResumeText);
+  const getLines = (...names: string[]) =>
+    sections
+      .filter((section) => names.includes(section.heading))
+      .flatMap((section) => section.lines)
+      .filter(Boolean);
+
+  const summaryLines = getLines("Summary");
+  const experienceLines = getLines("Experience");
+  const educationLines = getLines("Education", "Projects").slice(0, 14);
+  const rawSkills = getLines("Skills", "Languages", "Certifications");
+
+  const skillLines = rawSkills
+    .flatMap((line) => splitSkillLine(line))
+    .filter((value, index, arr) => arr.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index)
+    .slice(0, 24);
+
+  const fallbackSummary = sections
+    .filter((section) => section.heading !== "Experience")
+    .flatMap((section) => section.lines)
+    .filter((line) => line.length > 32)
+    .slice(0, 3);
+
+  return {
+    summaryLines: summaryLines.length > 0 ? summaryLines.slice(0, 4) : fallbackSummary,
+    experience: parseExperience(experienceLines),
+    educationLines,
+    skillLines,
+  };
+}
+
+function renderExperienceBlock(entries: ExperienceEntry[]) {
 
   return entries
     .map((entry) => {
@@ -159,19 +221,13 @@ function renderContactLine(contact: ContactInfo) {
 }
 
 function extractBlocks(optimizedResumeText: string) {
-  const sections = parseSections(optimizedResumeText);
-  const getLines = (name: string) => sections.find((section) => section.heading === name)?.lines ?? [];
-
-  const summaryLines = getLines("Summary");
-  const experienceLines = getLines("Experience");
-  const educationLines = getLines("Education");
-  const skillsLines = getLines("Skills").concat(getLines("Languages")).concat(getLines("Certifications"));
+  const structured = toStructuredCvData(optimizedResumeText);
 
   return {
-    summary: renderSummary(summaryLines),
-    experienceBlock: renderExperienceBlock(experienceLines),
-    educationBlock: renderEducationBlock(educationLines),
-    skillsBlock: renderSkillsBlock(skillsLines),
+    summary: renderSummary(structured.summaryLines),
+    experienceBlock: renderExperienceBlock(structured.experience),
+    educationBlock: renderEducationBlock(structured.educationLines),
+    skillsBlock: renderSkillsBlock(structured.skillLines),
   };
 }
 
