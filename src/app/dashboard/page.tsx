@@ -123,27 +123,38 @@ export default function DashboardPage() {
     formData.append("jobUrl", jobUrl);
     formData.append("cvFile", file);
 
-    const res = await fetch("/api/cv/structure-preview", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/cv/structure-preview", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
-    setPreparingStructure(false);
+      const data = await res.json().catch(() => ({}));
+      setPreparingStructure(false);
 
-    if (!res.ok) {
-      setError(data.error ?? "Erreur de génération.");
-      return;
+      if (!res.ok) {
+        setStructuredCv(createEmptyStructuredCv());
+        setStructureSource(null);
+        setHybridModalOpen(true);
+        setError(data.error ?? "Extraction incomplète: complète les expériences dans la pop-up.");
+        return;
+      }
+
+      const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
+      setStructuredCv(
+        nextStructured.experiences.length
+          ? nextStructured
+          : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
+      );
+      setStructureSource(data.source ?? null);
+      setHybridModalOpen(true);
+    } catch {
+      setPreparingStructure(false);
+      setStructuredCv(createEmptyStructuredCv());
+      setStructureSource(null);
+      setHybridModalOpen(true);
+      setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
-
-    const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
-    setStructuredCv(
-      nextStructured.experiences.length
-        ? nextStructured
-        : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
-    );
-    setStructureSource(data.source ?? null);
-    setHybridModalOpen(true);
   }
 
   function updateStructuredCv(updater: (current: StructuredCv) => StructuredCv) {
