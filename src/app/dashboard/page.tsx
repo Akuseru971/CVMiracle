@@ -73,6 +73,10 @@ export default function DashboardPage() {
   const [hybridModalOpen, setHybridModalOpen] = useState(false);
   const [, setLoadingStructure] = useState(false);
   const [preparingStructure, setPreparingStructure] = useState(false);
+  const [hybridConfidence, setHybridConfidence] = useState<Record<string, number> | null>(null);
+  const [overlapWarnings, setOverlapWarnings] = useState<string[]>([]);
+  const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
+  const [skillDraft, setSkillDraft] = useState("");
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -135,6 +139,9 @@ export default function DashboardPage() {
       if (!res.ok) {
         setStructuredCv(createEmptyStructuredCv());
         setStructureSource(null);
+        setHybridConfidence(null);
+        setOverlapWarnings([]);
+        setSuggestedImprovements([]);
         setHybridModalOpen(true);
         setError(data.error ?? "Extraction incomplète: complète les expériences dans la pop-up.");
         return;
@@ -147,11 +154,17 @@ export default function DashboardPage() {
           : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
       );
       setStructureSource(data.source ?? null);
+      setHybridConfidence(data.confidence ?? null);
+      setOverlapWarnings(data.overlapWarnings ?? []);
+      setSuggestedImprovements(data.suggestedImprovements ?? []);
       setHybridModalOpen(true);
     } catch {
       setPreparingStructure(false);
       setStructuredCv(createEmptyStructuredCv());
       setStructureSource(null);
+      setHybridConfidence(null);
+      setOverlapWarnings([]);
+      setSuggestedImprovements([]);
       setHybridModalOpen(true);
       setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
@@ -237,6 +250,9 @@ export default function DashboardPage() {
         ? nextStructured
         : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
     );
+    setHybridConfidence(null);
+    setOverlapWarnings([]);
+    setSuggestedImprovements([]);
     setPreview(null);
     setHybridValidated(false);
     setHybridModalOpen(true);
@@ -428,6 +444,11 @@ export default function DashboardPage() {
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
                   Aucune section ne doit être vide: Entreprise, Nom du poste, Dates, Lieu et Missions.
                 </p>
+                {hybridConfidence ? (
+                  <p className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                    Confiance globale extraction: {hybridConfidence.global ?? 0}%
+                  </p>
+                ) : null}
                 {!isHybridReady ? (
                   <p className="mt-2 text-xs text-red-500">Premier bloc à corriger: {hybridIssues[0]}</p>
                 ) : (
@@ -435,9 +456,66 @@ export default function DashboardPage() {
                     Formulaire complet, génération prête.
                   </p>
                 )}
+                {overlapWarnings.length ? (
+                  <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                    Chevauchement de dates détecté: {overlapWarnings[0]}
+                  </div>
+                ) : null}
+                {suggestedImprovements.length ? (
+                  <ul className="mt-2 list-disc pl-4 text-xs text-slate-600 dark:text-slate-300">
+                    {suggestedImprovements.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : null}
               </div>
 
               <div className="mt-4 space-y-3">
+                <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                    Skills (tags éditables)
+                  </p>
+                  <div className="mb-2 flex flex-wrap gap-2">
+                    {structuredCv.skills.map((skill, index) => (
+                      <button
+                        key={`${skill}-${index}`}
+                        type="button"
+                        className="rounded-full border border-slate-300 px-2 py-1 text-xs dark:border-slate-700"
+                        onClick={() =>
+                          updateStructuredCv((prev) => ({
+                            ...prev,
+                            skills: prev.skills.filter((_, skillIndex) => skillIndex !== index),
+                          }))
+                        }
+                      >
+                        {skill} ×
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Ajouter un skill"
+                      value={skillDraft}
+                      onChange={(e) => setSkillDraft(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => {
+                        const value = skillDraft.trim();
+                        if (!value) return;
+                        updateStructuredCv((prev) => ({
+                          ...prev,
+                          skills: [...prev.skills, value],
+                        }));
+                        setSkillDraft("");
+                      }}
+                    >
+                      Ajouter
+                    </Button>
+                  </div>
+                </div>
+
                 <Button
                   type="button"
                   variant="secondary"

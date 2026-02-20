@@ -1,15 +1,24 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
 import { parseCvFile } from "@/lib/cv-parser";
 import { extractJobOfferText } from "@/lib/job-parser";
 import {
   parseStructuredCvFromText,
-  sanitizeStructuredCv,
-  type StructuredCv,
 } from "@/lib/cv-structure";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { extractStructuredCvWithAI } from "@/lib/openai";
+import { extractHybridCvFormWithAI } from "@/lib/openai";
+import {
+  computeHybridConfidence,
+  detectDateOverlaps,
+  mapHybridToStructured,
+  mapStructuredToHybrid,
+  sanitizeHybridCvForm,
+  sortExperiencesMostRecent,
+  type HybridCvForm,
+} from "@/lib/hybrid-form";
+import { getHybridCache, setHybridCache } from "@/lib/hybrid-cache";
 
 export const runtime = "nodejs";
 
@@ -17,19 +26,32 @@ const schema = z.object({
   jobUrl: z.url(),
 });
 
-function mergeStructuredCv(base: StructuredCv, ai: StructuredCv | null): StructuredCv {
+function mergeHybrid(base: HybridCvForm, ai: HybridCvForm | null) {
   if (!ai) return base;
 
-  const merged: StructuredCv = {
-    summary: ai.summary?.trim() || base.summary,
-    experiences: ai.experiences.length ? ai.experiences : base.experiences,
+  const merged = sanitizeHybridCvForm({
+    personalInfo: {
+      fullName: ai.personalInfo.fullName || base.personalInfo.fullName,
+      city: ai.personalInfo.city || base.personalInfo.city,
+      phone: ai.personalInfo.phone || base.personalInfo.phone,
+      email: ai.personalInfo.email || base.personalInfo.email,
+      linkedin: ai.personalInfo.linkedin || base.personalInfo.linkedin,
+    },
+    summary: ai.summary || base.summary,
+    experience: ai.experience.length ? ai.experience : base.experience,
     education: ai.education.length ? ai.education : base.education,
-    skills: ai.skills.length ? ai.skills : base.skills,
+    hardSkills: ai.hardSkills.length ? ai.hardSkills : base.hardSkills,
+    softSkills: ai.softSkills.length ? ai.softSkills : base.softSkills,
     languages: ai.languages.length ? ai.languages : base.languages,
-    additional: ai.additional.length ? ai.additional : base.additional,
-  };
+    certifications: ai.certifications.length ? ai.certifications : base.certifications,
+    volunteering: ai.volunteering.length ? ai.volunteering : base.volunteering,
+    interests: ai.interests.length ? ai.interests : base.interests,
+  });
 
-  return sanitizeStructuredCv(merged);
+  return {
+    ...merged,
+    experience: sortExperiencesMostRecent(merged.experience),
+  };
 }
 
 export async function POST(request: Request) {
@@ -58,22 +80,62 @@ export async function POST(request: Request) {
     parseCvFile(file),
   ]);
 
-  const heuristic = parseStructuredCvFromText(parsedCv.text);
+  const cacheKey = createHash("sha256")
+    .update(`${parsed.data.jobUrl}::${parsedCv.text.slice(0, 12000)}`)
+    .digest("hex");
 
-  let aiStructured: StructuredCv | null = null;
+  const cached = getHybridCache<{
+    hybridForm: HybridCvForm;
+    source: "hybrid" | "heuristic";
+    confidence: ReturnType<typeof computeHybridConfidence>;
+    overlapWarnings: string[];
+    suggestedImprovements: string[];
+  }>(cacheKey);
+
+  if (cached) {
+    return NextResponse.json({
+      ...cached,
+      structuredCv: mapHybridToStructured(cached.hybridForm),
+      cacheHit: true,
+    });
+  }
+
+  const heuristicStructured = parseStructuredCvFromText(parsedCv.text);
+  const heuristicHybrid = mapStructuredToHybrid(heuristicStructured);
+
+  let aiHybrid: HybridCvForm | null = null;
   try {
-    aiStructured = await extractStructuredCvWithAI({
+    aiHybrid = await extractHybridCvFormWithAI({
       cvText: parsedCv.text,
       jobOfferText,
     });
   } catch {
-    aiStructured = null;
+    aiHybrid = null;
   }
 
-  const structuredCv = mergeStructuredCv(heuristic, aiStructured);
+  const hybridForm = mergeHybrid(heuristicHybrid, aiHybrid);
+  const confidence = computeHybridConfidence(hybridForm);
+  const overlapWarnings = detectDateOverlaps(hybridForm.experience);
+  const suggestedImprovements = [
+    confidence.summary < 60 ? "Compléter le résumé professionnel." : "",
+    confidence.experience < 80 ? "Ajouter des missions chiffrées par expérience." : "",
+    confidence.hardSkills < 70 ? "Ajouter davantage de hard skills spécifiques." : "",
+    overlapWarnings.length ? "Vérifier les chevauchements de dates détectés." : "",
+  ].filter(Boolean);
+
+  const responsePayload = {
+    hybridForm,
+    source: aiHybrid ? "hybrid" : "heuristic",
+    confidence,
+    overlapWarnings,
+    suggestedImprovements,
+  } as const;
+
+  setHybridCache(cacheKey, responsePayload);
 
   return NextResponse.json({
-    structuredCv,
-    source: aiStructured ? "hybrid" : "heuristic",
+    ...responsePayload,
+    structuredCv: mapHybridToStructured(hybridForm),
+    cacheHit: false,
   });
 }

@@ -15,6 +15,12 @@ import {
   structuredCvToText,
   type StructuredCv,
 } from "@/lib/cv-structure";
+import {
+  getHybridFormValidationIssues,
+  mapHybridToStructured,
+  sanitizeHybridCvForm,
+  type HybridCvForm,
+} from "@/lib/hybrid-form";
 
 export const runtime = "nodejs";
 
@@ -44,6 +50,7 @@ export async function POST(request: Request) {
   const rawTemplateChoice = formData.get("templateChoice");
   const file = formData.get("cvFile");
   const rawStructuredCv = formData.get("structuredCv");
+  const rawHybridForm = formData.get("hybridForm");
 
   const parsed = schema.safeParse({
     jobUrl: rawJobUrl,
@@ -62,7 +69,10 @@ export async function POST(request: Request) {
   let cvText = parsedCv.text;
   let confirmedStructuredCv: StructuredCv | null = null;
 
-  if (typeof rawStructuredCv !== "string" || !rawStructuredCv.trim()) {
+  if (
+    (typeof rawStructuredCv !== "string" || !rawStructuredCv.trim()) &&
+    (typeof rawHybridForm !== "string" || !rawHybridForm.trim())
+  ) {
     return NextResponse.json(
       { error: "Validation du formulaire hybride requise avant génération finale." },
       { status: 400 },
@@ -70,7 +80,22 @@ export async function POST(request: Request) {
   }
 
   try {
-    const parsedStructured = sanitizeStructuredCv(JSON.parse(rawStructuredCv) as StructuredCv);
+    let parsedStructured: StructuredCv;
+
+    if (typeof rawHybridForm === "string" && rawHybridForm.trim()) {
+      const parsedHybrid = sanitizeHybridCvForm(JSON.parse(rawHybridForm) as HybridCvForm);
+      const hybridIssues = getHybridFormValidationIssues(parsedHybrid);
+      if (hybridIssues.length) {
+        return NextResponse.json(
+          { error: `Formulaire hybride incomplet: ${hybridIssues[0]}` },
+          { status: 400 },
+        );
+      }
+      parsedStructured = mapHybridToStructured(parsedHybrid);
+    } else {
+      parsedStructured = sanitizeStructuredCv(JSON.parse(rawStructuredCv as string) as StructuredCv);
+    }
+
     const issues = getHybridValidationIssues(parsedStructured);
     if (issues.length) {
       return NextResponse.json(

@@ -80,6 +80,9 @@ export default function Home() {
   const [hybridModalOpen, setHybridModalOpen] = useState(false);
   const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
   const [preparingStructure, setPreparingStructure] = useState(false);
+  const [hybridConfidence, setHybridConfidence] = useState<Record<string, number> | null>(null);
+  const [overlapWarnings, setOverlapWarnings] = useState<string[]>([]);
+  const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
   const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
@@ -221,6 +224,9 @@ export default function Home() {
       if (!res.ok) {
         setStructuredCv(createEmptyStructuredCv());
         setStructureSource(null);
+        setHybridConfidence(null);
+        setOverlapWarnings([]);
+        setSuggestedImprovements([]);
         setHybridModalOpen(true);
         setError(data.error ?? "Extraction incomplète: complète les expériences dans la pop-up.");
         return;
@@ -233,11 +239,17 @@ export default function Home() {
           : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
       );
       setStructureSource(data.source ?? null);
+      setHybridConfidence(data.confidence ?? null);
+      setOverlapWarnings(data.overlapWarnings ?? []);
+      setSuggestedImprovements(data.suggestedImprovements ?? []);
       setHybridModalOpen(true);
     } catch {
       setPreparingStructure(false);
       setStructuredCv(createEmptyStructuredCv());
       setStructureSource(null);
+      setHybridConfidence(null);
+      setOverlapWarnings([]);
+      setSuggestedImprovements([]);
       setHybridModalOpen(true);
       setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
@@ -782,11 +794,29 @@ export default function Home() {
                   <p className="text-xs text-slate-500 dark:text-slate-300">
                     Source: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
                   </p>
+                  {hybridConfidence ? (
+                    <p className="text-xs text-slate-500 dark:text-slate-300">
+                      Confiance globale extraction: {hybridConfidence.global ?? 0}%
+                    </p>
+                  ) : null}
                 </div>
                 <Button variant="secondary" onClick={() => setHybridModalOpen(false)}>
                   Fermer
                 </Button>
               </div>
+
+              {overlapWarnings.length ? (
+                <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
+                  Chevauchement de dates détecté: {overlapWarnings[0]}
+                </div>
+              ) : null}
+              {suggestedImprovements.length ? (
+                <ul className="mb-3 list-disc pl-4 text-xs text-slate-600 dark:text-slate-300">
+                  {suggestedImprovements.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+              ) : null}
 
               <Button
                 type="button"

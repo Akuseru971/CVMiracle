@@ -3,6 +3,7 @@ import { z } from "zod";
 import { buildUserPrompt, SYSTEM_PROMPT } from "@/lib/ai-prompt";
 import type { TemplateChoice } from "@/lib/template-options";
 import type { StructuredCv } from "@/lib/cv-structure";
+import type { HybridCvForm } from "@/lib/hybrid-form";
 
 const outputSchema = z.object({
   optimizedResume: z.string().min(50),
@@ -40,6 +41,57 @@ const structuredCvSchema = z.object({
   skills: z.array(z.string()).optional().default([]),
   languages: z.array(z.string()).optional().default([]),
   additional: z.array(z.string()).optional().default([]),
+});
+
+const hybridCvFormSchema = z.object({
+  personalInfo: z.object({
+    fullName: z.string().optional().default(""),
+    city: z.string().optional().default(""),
+    phone: z.string().optional().default(""),
+    email: z.string().optional().default(""),
+    linkedin: z.string().optional().default(""),
+  }),
+  summary: z.string().optional().default(""),
+  experience: z
+    .array(
+      z.object({
+        jobTitle: z.string().optional().default(""),
+        company: z.string().optional().default(""),
+        location: z.string().optional().default(""),
+        startDate: z.string().optional().default(""),
+        endDate: z.string().optional().default(""),
+        isCurrent: z.boolean().optional().default(false),
+        achievements: z.array(z.string()).optional().default([]),
+      }),
+    )
+    .optional()
+    .default([]),
+  education: z
+    .array(
+      z.object({
+        degree: z.string().optional().default(""),
+        institution: z.string().optional().default(""),
+        location: z.string().optional().default(""),
+        startDate: z.string().optional().default(""),
+        endDate: z.string().optional().default(""),
+      }),
+    )
+    .optional()
+    .default([]),
+  hardSkills: z.array(z.string()).optional().default([]),
+  softSkills: z.array(z.string()).optional().default([]),
+  languages: z
+    .array(
+      z.object({
+        language: z.string().optional().default(""),
+        level: z.string().optional().default(""),
+      }),
+    )
+    .optional()
+    .default([]),
+  certifications: z.array(z.string()).optional().default([]),
+  volunteering: z.array(z.string()).optional().default([]),
+  interests: z.array(z.string()).optional().default([]),
 });
 
 export async function optimizeResumeWithAI(args: {
@@ -154,4 +206,44 @@ export async function extractStructuredCvWithAI(args: {
   }
 
   return parsed.data as StructuredCv;
+}
+
+export async function extractHybridCvFormWithAI(args: {
+  cvText: string;
+  jobOfferText: string;
+}): Promise<HybridCvForm | null> {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const completion = await client.chat.completions.create({
+    model,
+    response_format: { type: "json_object" },
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Extract CV data into strict JSON. Never invent information. Keep unknown fields empty. Return JSON only and no commentary.",
+      },
+      {
+        role: "user",
+        content: `Job offer context:\n${args.jobOfferText.slice(0, 7000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON with this exact shape:\n{\n  \"personalInfo\": { \"fullName\": \"\", \"city\": \"\", \"phone\": \"\", \"email\": \"\", \"linkedin\": \"\" },\n  \"summary\": \"\",\n  \"experience\": [{ \"jobTitle\": \"\", \"company\": \"\", \"location\": \"\", \"startDate\": \"\", \"endDate\": \"\", \"isCurrent\": false, \"achievements\": [] }],\n  \"education\": [{ \"degree\": \"\", \"institution\": \"\", \"location\": \"\", \"startDate\": \"\", \"endDate\": \"\" }],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [{ \"language\": \"\", \"level\": \"\" }],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}`,
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = hybridCvFormSchema.safeParse(JSON.parse(raw));
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data as HybridCvForm;
 }
