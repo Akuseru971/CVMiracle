@@ -33,6 +33,25 @@ const templateChoices = TEMPLATE_CHOICES;
 
 type Step = 1 | 2 | 3;
 
+function createEmptyStructuredCv(): StructuredCv {
+  return {
+    summary: "",
+    experiences: [
+      {
+        title: "",
+        company: "",
+        date: "",
+        location: "",
+        bullets: [],
+      },
+    ],
+    education: [],
+    skills: [],
+    languages: [],
+    additional: [],
+  };
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -121,7 +140,12 @@ export default function DashboardPage() {
       return;
     }
 
-    setStructuredCv(data.structuredCv ?? null);
+    const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
+    setStructuredCv(
+      nextStructured.experiences.length
+        ? nextStructured
+        : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
+    );
     setStructureSource(data.source ?? null);
     setStep(2);
   }
@@ -202,7 +226,12 @@ export default function DashboardPage() {
     }
 
     setSelectedApplicationId(id);
-    setStructuredCv(data.structuredCv ?? null);
+    const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
+    setStructuredCv(
+      nextStructured.experiences.length
+        ? nextStructured
+        : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
+    );
     setPreview(null);
     setHybridValidated(false);
     setStep(2);
@@ -386,11 +415,26 @@ export default function DashboardPage() {
           <h2 className="mb-4 text-lg font-semibold">Étape 2 • Formulaire hybride</h2>
 
           {!structuredCv ? (
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              {loadingStructure
-                ? "Chargement de la structure..."
-                : "Commence par l'étape 1 ou charge une candidature via “Hybride” dans l'historique."}
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {loadingStructure
+                  ? "Chargement de la structure..."
+                  : "Commence par l'étape 1 ou charge une candidature via “Hybride” dans l'historique."}
+              </p>
+              {!loadingStructure ? (
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setStructuredCv(createEmptyStructuredCv());
+                    setHybridValidated(false);
+                    setError("");
+                    setStep(2);
+                  }}
+                >
+                  Démarrer un formulaire hybride manuel
+                </Button>
+              ) : null}
+            </div>
           ) : (
             <div className="space-y-3">
               <p className="text-xs text-slate-500 dark:text-slate-300">
@@ -426,9 +470,41 @@ export default function DashboardPage() {
               </div>
 
               <p className="text-sm font-semibold">Section Expérience professionnelle</p>
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() =>
+                  updateStructuredCv((prev) => ({
+                    ...prev,
+                    experiences: [
+                      ...prev.experiences,
+                      { title: "", company: "", date: "", location: "", bullets: [] },
+                    ],
+                  }))
+                }
+              >
+                Ajouter une expérience
+              </Button>
               <div className="space-y-3">
                 {structuredCv.experiences.map((experience, index) => (
                   <div key={`${experience.title}-${index}`} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs font-semibold">Expérience {index + 1}</p>
+                      {structuredCv.experiences.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            updateStructuredCv((prev) => ({
+                              ...prev,
+                              experiences: prev.experiences.filter((_, i) => i !== index),
+                            }))
+                          }
+                        >
+                          Supprimer
+                        </Button>
+                      ) : null}
+                    </div>
                     <label className="text-xs font-medium">Nom du poste</label>
                     <Input
                       placeholder="Nom du poste"
