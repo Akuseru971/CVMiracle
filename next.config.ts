@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "8mb",
     },
   },
-  serverExternalPackages: ["pdf-parse", "pdfkit", "mammoth"],
+  serverExternalPackages: [
+    "pdf-parse",
+    "pdfkit",
+    "mammoth",
+    "puppeteer-core",
+    "@sparticuz/chromium",
+  ],
   async headers() {
     return [
       {

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText } from "@/lib/crypto";
+import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
-import { buildTemplatedResumePdfBuffer } from "@/lib/resume-template-pdf";
+import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 
 export const runtime = "nodejs";
 
@@ -59,16 +60,22 @@ export async function GET(
   } catch {
   }
 
-  const pdf = await buildTemplatedResumePdfBuffer({
-    title: application.title,
-    resumeText: decrypted,
-    templateChoice: application.templateChoice as
-      | "Original Design Enhanced"
-      | "Modern Executive"
-      | "Minimal ATS",
-    matchScore: application.matchScore,
-    keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
-  });
+  let pdf: Buffer;
+
+  try {
+    pdf = await renderResumePdfWithPuppeteer({
+      title: application.title,
+      resumeText: decrypted,
+      templateChoice: application.templateChoice as
+        | "Original Design Enhanced"
+        | "Modern Executive"
+        | "Minimal ATS",
+      matchScore: application.matchScore,
+      keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
+    });
+  } catch {
+    pdf = await buildResumePdfBuffer(application.title, decrypted);
+  }
 
   const headers = new Headers();
   headers.set("Content-Type", "application/pdf");
