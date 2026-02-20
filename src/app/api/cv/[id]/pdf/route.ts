@@ -25,6 +25,7 @@ export async function GET(
     where: { id, userId: user.id },
     select: {
       title: true,
+      originalCvEnc: true,
       optimizedCvEnc: true,
       templateChoice: true,
       matchScore: true,
@@ -37,6 +38,7 @@ export async function GET(
   }
 
   const decrypted = decryptText(application.optimizedCvEnc);
+  const originalCvText = decryptText(application.originalCvEnc);
   let resumeTextForTemplate = decrypted;
   let hasLegacyPdfAsset = false;
 
@@ -63,7 +65,8 @@ export async function GET(
   try {
     pdf = await renderResumePdfWithPuppeteer({
       title: application.title,
-      resumeText: resumeTextForTemplate,
+      originalResumeText: originalCvText,
+      optimizedResumeText: resumeTextForTemplate,
       templateChoice: application.templateChoice as
         | "Original Design Enhanced"
         | "Modern Executive"
