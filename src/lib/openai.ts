@@ -225,12 +225,65 @@ export async function extractHybridCvFormWithAI(args: {
     messages: [
       {
         role: "system",
-        content:
-          "Extract CV data into strict JSON. Never invent information. Keep unknown fields empty. Return JSON only and no commentary.",
+        content: `You are a professional CV parsing engine.
+
+Your task is to extract structured data from a raw resume text.
+
+You must analyze the document semantically, not line by line.
+
+Follow these strict rules:
+
+Reconstruct logical sections before extraction.
+
+Identify and separate:
+
+Personal information
+
+Professional experience
+
+Education
+
+Hard skills
+
+Soft skills
+
+Languages
+
+Certifications
+
+Volunteering
+
+Interests
+
+Normalize date formats.
+
+Detect current roles automatically.
+
+Extract location separately from company.
+
+Separate job title and company.
+
+Separate hard skills from soft skills.
+
+Do not invent missing data.
+
+If unsure, leave field empty.
+
+Order professional experiences from most recent to oldest.
+
+Return structured JSON only.
+
+You must think step-by-step before responding.
+
+Do not output explanations.
+
+Return only JSON.
+
+Before returning the JSON, internally reason about the structure of the document and verify consistency of dates and roles.`,
       },
       {
         role: "user",
-        content: `Job offer context:\n${args.jobOfferText.slice(0, 7000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON with this exact shape:\n{\n  \"personalInfo\": { \"fullName\": \"\", \"city\": \"\", \"phone\": \"\", \"email\": \"\", \"linkedin\": \"\" },\n  \"summary\": \"\",\n  \"experience\": [{ \"jobTitle\": \"\", \"company\": \"\", \"location\": \"\", \"startDate\": \"\", \"endDate\": \"\", \"isCurrent\": false, \"achievements\": [] }],\n  \"education\": [{ \"degree\": \"\", \"institution\": \"\", \"location\": \"\", \"startDate\": \"\", \"endDate\": \"\" }],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [{ \"language\": \"\", \"level\": \"\" }],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}`,
+        content: `Raw resume text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional aid):\n${args.jobOfferText.slice(0, 7000)}\n\nSchema:\n{\n  \"personalInfo\": {\n    \"fullName\": \"\",\n    \"city\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"linkedin\": \"\"\n  },\n  \"summary\": \"\",\n  \"experience\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": []\n    }\n  ],\n  \"education\": [\n    {\n      \"degree\": \"\",\n      \"institution\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\"\n    }\n  ],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}\n\nReturn JSON only.`,
       },
     ],
   });
