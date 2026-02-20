@@ -31,8 +31,6 @@ type Application = {
 
 const templateChoices = TEMPLATE_CHOICES;
 
-type Step = 1 | 2 | 3;
-
 function createEmptyStructuredCv(): StructuredCv {
   return {
     summary: "",
@@ -63,19 +61,17 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<Application[]>([]);
-  const [step, setStep] = useState<Step>(1);
   const [preview, setPreview] = useState<{
     optimizedResume: string;
     keywordsIntegrated: string[];
     missingSkills: string[];
     structuredCv?: StructuredCv;
   } | null>(null);
-  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
   const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
   const [hybridValidated, setHybridValidated] = useState(false);
-  const [savingStructure, setSavingStructure] = useState(false);
-  const [loadingStructure, setLoadingStructure] = useState(false);
+  const [hybridModalOpen, setHybridModalOpen] = useState(false);
+  const [, setLoadingStructure] = useState(false);
   const [preparingStructure, setPreparingStructure] = useState(false);
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
@@ -121,7 +117,7 @@ export default function DashboardPage() {
     setError("");
     setPreview(null);
     setHybridValidated(false);
-    setStep(1);
+    setHybridModalOpen(false);
 
     const formData = new FormData();
     formData.append("jobUrl", jobUrl);
@@ -147,7 +143,7 @@ export default function DashboardPage() {
         : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
     );
     setStructureSource(data.source ?? null);
-    setStep(2);
+    setHybridModalOpen(true);
   }
 
   function updateStructuredCv(updater: (current: StructuredCv) => StructuredCv) {
@@ -156,13 +152,12 @@ export default function DashboardPage() {
       return updater(prev);
     });
     setHybridValidated(false);
-    setStep(2);
   }
 
   const hybridIssues = structuredCv ? getHybridValidationIssues(structuredCv) : [];
   const isHybridReady = structuredCv ? hybridIssues.length === 0 : false;
 
-  function validateHybridStep() {
+  async function validateHybridStep() {
     if (!structuredCv) return;
 
     const issues = getHybridValidationIssues(structuredCv);
@@ -174,11 +169,13 @@ export default function DashboardPage() {
 
     setError("");
     setHybridValidated(true);
-    setStep(3);
+    setHybridModalOpen(false);
+    await generateFinalCv(structuredCv);
   }
 
-  async function generateFinalCv() {
-    if (!file || !structuredCv || !hybridValidated) {
+  async function generateFinalCv(validatedStructuredCv?: StructuredCv) {
+    const finalStructured = validatedStructuredCv ?? structuredCv;
+    if (!file || !finalStructured) {
       setError("Données incomplètes pour la génération finale.");
       return;
     }
@@ -190,7 +187,7 @@ export default function DashboardPage() {
     formData.append("jobUrl", jobUrl);
     formData.append("templateChoice", templateChoice);
     formData.append("cvFile", file);
-    formData.append("structuredCv", JSON.stringify(structuredCv));
+    formData.append("structuredCv", JSON.stringify(finalStructured));
 
     const res = await fetch("/api/cv/generate", {
       method: "POST",
@@ -208,9 +205,7 @@ export default function DashboardPage() {
     setPreview(data.preview);
     setUser((prev) => (prev ? { ...prev, credits: data.credits } : prev));
     setHistory((prev) => [data.application, ...prev]);
-    setSelectedApplicationId(data.application.id);
-    setStructuredCv(data.preview?.structuredCv ?? structuredCv);
-    setStep(3);
+    setStructuredCv(data.preview?.structuredCv ?? finalStructured);
     setHybridValidated(true);
   }
 
@@ -225,7 +220,6 @@ export default function DashboardPage() {
       return;
     }
 
-    setSelectedApplicationId(id);
     const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
     setStructuredCv(
       nextStructured.experiences.length
@@ -234,24 +228,7 @@ export default function DashboardPage() {
     );
     setPreview(null);
     setHybridValidated(false);
-    setStep(2);
-  }
-
-  async function saveStructuredCv() {
-    if (!selectedApplicationId || !structuredCv) return;
-
-    setSavingStructure(true);
-    const res = await fetch(`/api/cv/${selectedApplicationId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ structuredCv }),
-    });
-    setSavingStructure(false);
-
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({ error: "Erreur d'enregistrement" }));
-      setError(data.error ?? "Erreur d'enregistrement");
-    }
+    setHybridModalOpen(true);
   }
 
   async function logout() {
@@ -302,16 +279,10 @@ export default function DashboardPage() {
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <Card>
-            <h2 className="mb-2 text-lg font-semibold">Parcours en 3 étapes</h2>
+            <h2 className="mb-2 text-lg font-semibold">Génération CV</h2>
             <p className="mb-4 text-xs text-slate-500 dark:text-slate-300">
-              1) Import CV + offre • 2) Formulaire hybride • 3) Génération finale
+              Renseigne l&apos;offre, importe ton CV, valide la pop-up des expériences, puis la génération démarre automatiquement.
             </p>
-
-            <div className="mb-4 flex gap-2 text-xs">
-              <Badge className={step >= 1 ? "" : "opacity-60"}>Étape 1</Badge>
-              <Badge className={step >= 2 ? "" : "opacity-60"}>Étape 2</Badge>
-              <Badge className={step >= 3 ? "" : "opacity-60"}>Étape 3</Badge>
-            </div>
 
             <form className="space-y-3" onSubmit={prepareHybridStep}>
               <Input
@@ -346,7 +317,7 @@ export default function DashboardPage() {
               <Button className="w-full" disabled={preparingStructure}>
                 {preparingStructure
                   ? "Analyse et segmentation en cours..."
-                  : "Étape 1 → Lancer le formulaire hybride"}
+                  : "Analyser puis ouvrir la vérification des expériences"}
               </Button>
             </form>
             <p className="mt-4 text-xs text-slate-500 dark:text-slate-300">
@@ -355,18 +326,15 @@ export default function DashboardPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-3 text-lg font-semibold">Étape 3 • Génération finale</h2>
-            <Button
-              className="w-full"
-              disabled={loading || !structuredCv || !hybridValidated || step < 3}
-              onClick={generateFinalCv}
-            >
-              {loading ? "Génération finale en cours..." : "Étape 3 → Générer le CV final"}
-            </Button>
+            <h2 className="mb-3 text-lg font-semibold">Statut</h2>
             <p className="mt-3 text-xs text-slate-500 dark:text-slate-300">
-              {!hybridValidated
-                ? "Valide d'abord l'étape 2 (formulaire hybride complet) pour débloquer la génération."
-                : "Une fois généré, le PDF est disponible dans l&apos;historique."}
+              {loading
+                ? "Génération finale en cours..."
+                : hybridModalOpen
+                  ? "La pop-up de validation est ouverte."
+                  : hybridValidated
+                    ? "CV généré. Le PDF est disponible dans l'historique."
+                    : "En attente de validation de la pop-up des expériences."}
             </p>
           </Card>
         </div>
@@ -411,35 +379,39 @@ export default function DashboardPage() {
           </div>
         </Card>
 
-        <Card className="mt-5">
-          <h2 className="mb-4 text-lg font-semibold">Étape 2 • Formulaire hybride</h2>
-
-          {!structuredCv ? (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                {loadingStructure
-                  ? "Chargement de la structure..."
-                  : "Commence par l'étape 1 ou charge une candidature via “Hybride” dans l'historique."}
-              </p>
-              {!loadingStructure ? (
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setStructuredCv(createEmptyStructuredCv());
-                    setHybridValidated(false);
-                    setError("");
-                    setStep(2);
-                  }}
-                >
-                  Démarrer un formulaire hybride manuel
-                </Button>
-              ) : null}
+        {preview && hybridValidated ? (
+          <Card className="mt-5">
+            <h2 className="mb-3 text-lg font-semibold">Dernière optimisation</h2>
+            <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900">
+              {preview.optimizedResume}
+            </pre>
+            <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              <p className="font-medium">Keywords intégrés:</p>
+              <p>{preview.keywordsIntegrated.join(", ")}</p>
+              <p className="mt-2 font-medium">Compétences manquantes (non ajoutées):</p>
+              <p>{preview.missingSkills.join(", ") || "Aucune"}</p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-xs text-slate-500 dark:text-slate-300">
-                Source de segmentation: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
-              </p>
+          </Card>
+        ) : null}
+
+        {hybridModalOpen && structuredCv ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white p-5 text-slate-900 dark:bg-slate-950 dark:text-white">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold">Vérification des expériences professionnelles</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
+                    Vérifie et complète: Entreprise, Nom du poste, Dates, Lieu, Missions.
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
+                    Source: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
+                  </p>
+                </div>
+                <Button variant="secondary" onClick={() => setHybridModalOpen(false)}>
+                  Fermer
+                </Button>
+              </div>
+
               <div className="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
                 <p className="text-sm font-semibold">Règle d&apos;or</p>
                 <p className="mt-1 text-xs text-slate-600 dark:text-slate-300">
@@ -449,45 +421,33 @@ export default function DashboardPage() {
                   <p className="mt-2 text-xs text-red-500">Premier bloc à corriger: {hybridIssues[0]}</p>
                 ) : (
                   <p className="mt-2 text-xs text-emerald-600 dark:text-emerald-400">
-                    Formulaire complet, prêt pour validation de l&apos;étape 2.
+                    Formulaire complet, génération prête.
                   </p>
                 )}
               </div>
 
-              <div>
-                <p className="mb-1 text-sm font-semibold">Section Résumé professionnel</p>
-                <label className="text-xs font-medium">Résumé</label>
-              <textarea
-                className="h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                value={structuredCv.summary}
-                onChange={(e) =>
-                  updateStructuredCv((prev) => ({
-                    ...prev,
-                    summary: e.target.value,
-                  }))
-                }
-              />
-              </div>
+              <div className="mt-4 space-y-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() =>
+                    updateStructuredCv((prev) => ({
+                      ...prev,
+                      experiences: [
+                        ...prev.experiences,
+                        { title: "", company: "", date: "", location: "", bullets: [] },
+                      ],
+                    }))
+                  }
+                >
+                  Ajouter une expérience
+                </Button>
 
-              <p className="text-sm font-semibold">Section Expérience professionnelle</p>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() =>
-                  updateStructuredCv((prev) => ({
-                    ...prev,
-                    experiences: [
-                      ...prev.experiences,
-                      { title: "", company: "", date: "", location: "", bullets: [] },
-                    ],
-                  }))
-                }
-              >
-                Ajouter une expérience
-              </Button>
-              <div className="space-y-3">
                 {structuredCv.experiences.map((experience, index) => (
-                  <div key={`${experience.title}-${index}`} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+                  <div
+                    key={`${experience.title}-${index}`}
+                    className="rounded-lg border border-slate-200 p-3 dark:border-slate-700"
+                  >
                     <div className="mb-2 flex items-center justify-between">
                       <p className="text-xs font-semibold">Expérience {index + 1}</p>
                       {structuredCv.experiences.length > 1 ? (
@@ -505,6 +465,7 @@ export default function DashboardPage() {
                         </Button>
                       ) : null}
                     </div>
+
                     <label className="text-xs font-medium">Nom du poste</label>
                     <Input
                       placeholder="Nom du poste"
@@ -517,36 +478,38 @@ export default function DashboardPage() {
                         })
                       }
                     />
+
                     <div className="mt-2 grid gap-2 sm:grid-cols-2">
                       <div>
                         <label className="text-xs font-medium">Entreprise</label>
-                      <Input
-                        placeholder="Entreprise"
-                        value={experience.company}
-                        onChange={(e) =>
-                          updateStructuredCv((prev) => {
-                            const experiences = [...prev.experiences];
-                            experiences[index] = { ...experiences[index], company: e.target.value };
-                            return { ...prev, experiences };
-                          })
-                        }
-                      />
+                        <Input
+                          placeholder="Entreprise"
+                          value={experience.company}
+                          onChange={(e) =>
+                            updateStructuredCv((prev) => {
+                              const experiences = [...prev.experiences];
+                              experiences[index] = { ...experiences[index], company: e.target.value };
+                              return { ...prev, experiences };
+                            })
+                          }
+                        />
                       </div>
                       <div>
                         <label className="text-xs font-medium">Dates</label>
-                      <Input
-                        placeholder="Dates"
-                        value={experience.date}
-                        onChange={(e) =>
-                          updateStructuredCv((prev) => {
-                            const experiences = [...prev.experiences];
-                            experiences[index] = { ...experiences[index], date: e.target.value };
-                            return { ...prev, experiences };
-                          })
-                        }
-                      />
+                        <Input
+                          placeholder="Dates"
+                          value={experience.date}
+                          onChange={(e) =>
+                            updateStructuredCv((prev) => {
+                              const experiences = [...prev.experiences];
+                              experiences[index] = { ...experiences[index], date: e.target.value };
+                              return { ...prev, experiences };
+                            })
+                          }
+                        />
                       </div>
                     </div>
+
                     <div className="mt-2">
                       <label className="text-xs font-medium">Lieu</label>
                       <Input
@@ -561,6 +524,7 @@ export default function DashboardPage() {
                         }
                       />
                     </div>
+
                     <label className="mt-2 block text-xs font-medium">Missions</label>
                     <textarea
                       className="mt-2 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
@@ -585,65 +549,13 @@ export default function DashboardPage() {
                 ))}
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-3">
-                <textarea
-                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                  placeholder="Education (1 ligne par entrée)"
-                  value={structuredCv.education.join("\n")}
-                  onChange={(e) =>
-                    updateStructuredCv((prev) => ({
-                      ...prev,
-                      education: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
-                    }))
-                  }
-                />
-                <textarea
-                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                  placeholder="Skills (1 ligne par entrée)"
-                  value={structuredCv.skills.join("\n")}
-                  onChange={(e) =>
-                    updateStructuredCv((prev) => ({
-                      ...prev,
-                      skills: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
-                    }))
-                  }
-                />
-                <textarea
-                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                  placeholder="Languages (1 ligne par entrée)"
-                  value={structuredCv.languages.join("\n")}
-                  onChange={(e) =>
-                    updateStructuredCv((prev) => ({
-                      ...prev,
-                      languages: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
-                    }))
-                  }
-                />
+              <div className="mt-4">
+                <Button className="w-full" disabled={loading} onClick={validateHybridStep}>
+                  {loading ? "Génération finale en cours..." : "Valider et générer le CV"}
+                </Button>
               </div>
-
-              <Button className="w-full" onClick={saveStructuredCv}>
-                {savingStructure ? "Enregistrement..." : "Enregistrer la structure CV"}
-              </Button>
-              <Button className="w-full" variant="secondary" onClick={validateHybridStep}>
-                Valider l&apos;étape 2
-              </Button>
             </div>
-          )}
-        </Card>
-
-        {preview && hybridValidated && step >= 3 ? (
-          <Card className="mt-5">
-            <h2 className="mb-3 text-lg font-semibold">Dernière optimisation</h2>
-            <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900">
-              {preview.optimizedResume}
-            </pre>
-            <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
-              <p className="font-medium">Keywords intégrés:</p>
-              <p>{preview.keywordsIntegrated.join(", ")}</p>
-              <p className="mt-2 font-medium">Compétences manquantes (non ajoutées):</p>
-              <p>{preview.missingSkills.join(", ") || "Aucune"}</p>
-            </div>
-          </Card>
+          </div>
         ) : null}
       </main>
     </div>
