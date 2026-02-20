@@ -2,10 +2,11 @@ import { NextResponse } from "next/server";
 import { CreditReason } from "@prisma/client";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
-import { extractCvText } from "@/lib/cv-parser";
+import { parseCvFile } from "@/lib/cv-parser";
 import { encryptText } from "@/lib/crypto";
 import { extractJobOfferText } from "@/lib/job-parser";
 import { optimizeResumeWithAI } from "@/lib/openai";
+import { buildOriginalDesignEnhancedPdf } from "@/lib/pdf-enhance";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -51,16 +52,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Paramètres invalides" }, { status: 400 });
   }
 
-  const [jobOfferText, cvText] = await Promise.all([
+  const [jobOfferText, parsedCv] = await Promise.all([
     extractJobOfferText(parsed.data.jobUrl),
-    extractCvText(file),
+    parseCvFile(file),
   ]);
+
+  const cvText = parsedCv.text;
 
   const aiResult = await optimizeResumeWithAI({
     jobOfferText,
     cvText,
     templateChoice: parsed.data.templateChoice,
   });
+
+  let optimizedPayload = aiResult.optimizedResume;
+
+  if (parsed.data.templateChoice === "Original Design Enhanced" && parsedCv.fileType === "pdf") {
+    const preservedPdf = await buildOriginalDesignEnhancedPdf(parsedCv.buffer, aiResult.optimizedResume);
+    optimizedPayload = JSON.stringify({
+      kind: "pdf-asset",
+      mimeType: "application/pdf",
+      fileName: `optimized_${parsedCv.originalName.replace(/\.pdf$/i, "")}.pdf`,
+      base64: preservedPdf.toString("base64"),
+      optimizedText: aiResult.optimizedResume,
+    });
+  }
 
   const created = await prisma.$transaction(async (tx) => {
     const updated = await tx.user.updateMany({
@@ -79,7 +95,7 @@ export async function POST(request: Request) {
         jobUrl: parsed.data.jobUrl,
         jobOfferEncrypted: encryptText(jobOfferText),
         originalCvEnc: encryptText(cvText),
-        optimizedCvEnc: encryptText(aiResult.optimizedResume),
+        optimizedCvEnc: encryptText(optimizedPayload),
         templateChoice: parsed.data.templateChoice,
         matchScore: aiResult.matchScore,
         keywords: aiResult.keywordsIntegrated,

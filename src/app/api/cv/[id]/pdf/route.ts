@@ -29,8 +29,31 @@ export async function GET(
     return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
   }
 
-  const resumeText = decryptText(application.optimizedCvEnc);
-  const pdf = await buildResumePdfBuffer(application.title, resumeText);
+  const decrypted = decryptText(application.optimizedCvEnc);
+
+  try {
+    const parsed = JSON.parse(decrypted) as {
+      kind?: string;
+      mimeType?: string;
+      fileName?: string;
+      base64?: string;
+      optimizedText?: string;
+    };
+
+    if (parsed.kind === "pdf-asset" && parsed.base64) {
+      const buffer = Buffer.from(parsed.base64, "base64");
+      const headers = new Headers();
+      headers.set("Content-Type", parsed.mimeType ?? "application/pdf");
+      headers.set(
+        "Content-Disposition",
+        `attachment; filename="${parsed.fileName ?? `${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf`}"`,
+      );
+      return new NextResponse(new Uint8Array(buffer), { headers });
+    }
+  } catch {
+  }
+
+  const pdf = await buildResumePdfBuffer(application.title, decrypted);
 
   const headers = new Headers();
   headers.set("Content-Type", "application/pdf");
