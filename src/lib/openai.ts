@@ -94,13 +94,22 @@ const hybridCvFormSchema = z.object({
   interests: z.array(z.string()).optional().default([]),
 });
 
-const logicalStructureSchema = z.object({
-  personalInformation: z.array(z.string()).optional().default([]),
-  workExperienceBlocks: z.array(z.array(z.string())).optional().default([]),
-  educationBlocks: z.array(z.array(z.string())).optional().default([]),
-  skills: z.array(z.string()).optional().default([]),
-  languages: z.array(z.string()).optional().default([]),
-  otherSections: z.array(z.array(z.string())).optional().default([]),
+const experienceListingSchema = z.object({
+  experiences: z
+    .array(
+      z.object({
+        jobTitle: z.string().optional().default(""),
+        company: z.string().optional().default(""),
+        location: z.string().optional().default(""),
+        startDate: z.string().optional().default(""),
+        endDate: z.string().optional().default(""),
+        isCurrent: z.boolean().optional().default(false),
+        achievements: z.array(z.string()).optional().default([]),
+        sourceLines: z.array(z.string()).optional().default([]),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 export async function optimizeResumeWithAI(args: {
@@ -227,47 +236,53 @@ export async function extractHybridCvFormWithAI(args: {
 
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  let logicalStructure: z.infer<typeof logicalStructureSchema> | null = null;
+  let experienceListing: z.infer<typeof experienceListingSchema> | null = null;
 
   try {
-    const structureCompletion = await client.chat.completions.create({
+    const listingCompletion = await client.chat.completions.create({
       model,
       response_format: { type: "json_object" },
       temperature: 0,
       messages: [
         {
           role: "system",
-          content: `You are a document structure analyst.
+          content: `You are a professional experience mapping analyst.
 
-First, reconstruct the logical structure of the following CV text.
+First, list all professional experiences found in the CV.
 
-Identify:
-- Personal information
-- Work experience blocks
-- Education blocks
-- Skills
-- Languages
-- Other sections
+For each experience, map clearly:
+- jobTitle
+- company
+- location
+- startDate
+- endDate
+- isCurrent
+- achievements
 
-Do not extract yet.
-Only group the content logically.`,
+Rules:
+- Keep role and company separated.
+- Keep location separated from company.
+- Keep dates linked to the correct role.
+- Do not invent missing data.
+- If uncertain, leave fields empty.
+- Return JSON only.`,
         },
         {
           role: "user",
-          content: `CV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape:\n{\n  \"personalInformation\": [],\n  \"workExperienceBlocks\": [[]],\n  \"educationBlocks\": [[]],\n  \"skills\": [],\n  \"languages\": [],\n  \"otherSections\": [[]]\n}`,
+          content: `CV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape:\n{\n  \"experiences\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": [],\n      \"sourceLines\": []\n    }\n  ]\n}`,
         },
       ],
     });
 
-    const rawStructure = structureCompletion.choices[0]?.message?.content;
-    if (rawStructure) {
-      const parsedStructure = logicalStructureSchema.safeParse(JSON.parse(rawStructure));
-      if (parsedStructure.success) {
-        logicalStructure = parsedStructure.data;
+    const rawListing = listingCompletion.choices[0]?.message?.content;
+    if (rawListing) {
+      const parsedListing = experienceListingSchema.safeParse(JSON.parse(rawListing));
+      if (parsedListing.success) {
+        experienceListing = parsedListing.data;
       }
     }
   } catch {
-    logicalStructure = null;
+    experienceListing = null;
   }
 
   const extractionCompletion = await client.chat.completions.create({
@@ -277,7 +292,7 @@ Only group the content logically.`,
     messages: [
       {
         role: "system",
-        content: `Now convert the structured content into strict JSON.
+        content: `Now convert the mapped CV content into strict form JSON.
 
 Follow this schema strictly:
 {
@@ -304,7 +319,7 @@ Before returning the JSON, internally reason about the structure of the document
       },
       {
         role: "user",
-        content: `Structured content from step 1:\n${JSON.stringify(logicalStructure ?? {})}\n\nRaw resume text (fallback context):\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional):\n${args.jobOfferText.slice(0, 7000)}\n\nTarget schema:\n{\n  \"personalInfo\": {\n    \"fullName\": \"\",\n    \"city\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"linkedin\": \"\"\n  },\n  \"summary\": \"\",\n  \"experience\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": []\n    }\n  ],\n  \"education\": [\n    {\n      \"degree\": \"\",\n      \"institution\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\"\n    }\n  ],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}\n\nReturn JSON only.`,
+        content: `Mapped experiences from step 1:\n${JSON.stringify(experienceListing ?? {})}\n\nRaw resume text (fallback context):\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional):\n${args.jobOfferText.slice(0, 7000)}\n\nSegment everything into the target form schema:\n{\n  \"personalInfo\": {\n    \"fullName\": \"\",\n    \"city\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"linkedin\": \"\"\n  },\n  \"summary\": \"\",\n  \"experience\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": []\n    }\n  ],\n  \"education\": [\n    {\n      \"degree\": \"\",\n      \"institution\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\"\n    }\n  ],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}\n\nReturn JSON only.`,
       },
     ],
   });
