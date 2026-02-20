@@ -818,141 +818,46 @@ export default function Home() {
                 </ul>
               ) : null}
 
-              <Button
-                type="button"
-                variant="secondary"
-                className="mb-3"
-                onClick={() =>
-                  setStructuredCv((prev) =>
-                    prev
-                      ? {
-                          ...prev,
-                          experiences: [
-                            ...prev.experiences,
-                            { title: "", company: "", date: "", location: "", bullets: [] },
-                          ],
-                        }
-                      : prev,
-                  )
-                }
-              >
-                Ajouter une expérience
-              </Button>
-
-              <div className="space-y-3">
-                {structuredCv.experiences.map((experience, index) => (
-                  <div
-                    key={`${experience.title}-${index}`}
-                    className="rounded-lg border border-slate-200 p-3 dark:border-slate-700"
-                  >
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-xs font-semibold">Expérience {index + 1}</p>
-                      {structuredCv.experiences.length > 1 ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() =>
-                            setStructuredCv((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    experiences: prev.experiences.filter((_, i) => i !== index),
-                                  }
-                                : prev,
-                            )
-                          }
-                        >
-                          Supprimer
-                        </Button>
-                      ) : null}
-                    </div>
-
-                    <label className="text-xs font-medium">Nom du poste</label>
-                    <Input
-                      placeholder="Nom du poste"
-                      value={experience.title}
-                      onChange={(e) =>
-                        setStructuredCv((prev) => {
-                          if (!prev) return prev;
-                          const experiences = [...prev.experiences];
-                          experiences[index] = { ...experiences[index], title: e.target.value };
-                          return { ...prev, experiences };
-                        })
-                      }
-                    />
-
-                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
-                      <div>
-                        <label className="text-xs font-medium">Entreprise</label>
-                        <Input
-                          placeholder="Entreprise"
-                          value={experience.company}
-                          onChange={(e) =>
-                            setStructuredCv((prev) => {
-                              if (!prev) return prev;
-                              const experiences = [...prev.experiences];
-                              experiences[index] = { ...experiences[index], company: e.target.value };
-                              return { ...prev, experiences };
-                            })
-                          }
-                        />
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                <p className="mb-2 font-semibold">Résultat lu par l&apos;IA</p>
+                <p className="mb-2 text-slate-600 dark:text-slate-300">
+                  Résumé: {structuredCv.summary || "Non détecté"}
+                </p>
+                {structuredCv.experiences.length ? (
+                  <div className="space-y-2">
+                    {structuredCv.experiences.map((experience, index) => (
+                      <div
+                        key={`${experience.title}-${index}`}
+                        className="rounded border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-950"
+                      >
+                        <p>
+                          <span className="font-medium">{index + 1}. Poste:</span> {experience.title || ""}
+                        </p>
+                        <p>
+                          <span className="font-medium">Entreprise:</span> {experience.company || ""}
+                        </p>
+                        <p>
+                          <span className="font-medium">Lieu:</span> {experience.location || ""}
+                        </p>
+                        <p>
+                          <span className="font-medium">Dates:</span> {experience.date || ""}
+                        </p>
+                        <p className="font-medium">Missions:</p>
+                        <ul className="list-disc pl-5">
+                          {experience.bullets.length ? (
+                            experience.bullets.map((bullet, bulletIndex) => (
+                              <li key={`${experience.title}-${bulletIndex}`}>{bullet}</li>
+                            ))
+                          ) : (
+                            <li>Aucune mission détectée</li>
+                          )}
+                        </ul>
                       </div>
-                      <div>
-                        <label className="text-xs font-medium">Dates</label>
-                        <Input
-                          placeholder="Dates"
-                          value={experience.date}
-                          onChange={(e) =>
-                            setStructuredCv((prev) => {
-                              if (!prev) return prev;
-                              const experiences = [...prev.experiences];
-                              experiences[index] = { ...experiences[index], date: e.target.value };
-                              return { ...prev, experiences };
-                            })
-                          }
-                        />
-                      </div>
-                    </div>
-
-                    <div className="mt-2">
-                      <label className="text-xs font-medium">Lieu</label>
-                      <Input
-                        placeholder="Lieu"
-                        value={experience.location ?? ""}
-                        onChange={(e) =>
-                          setStructuredCv((prev) => {
-                            if (!prev) return prev;
-                            const experiences = [...prev.experiences];
-                            experiences[index] = { ...experiences[index], location: e.target.value };
-                            return { ...prev, experiences };
-                          })
-                        }
-                      />
-                    </div>
-
-                    <label className="mt-2 block text-xs font-medium">Missions</label>
-                    <textarea
-                      className="mt-2 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
-                      placeholder="Missions (1 par ligne, max 4)"
-                      value={experience.bullets.join("\n")}
-                      onChange={(e) =>
-                        setStructuredCv((prev) => {
-                          if (!prev) return prev;
-                          const experiences = [...prev.experiences];
-                          experiences[index] = {
-                            ...experiences[index],
-                            bullets: e.target.value
-                              .split("\n")
-                              .map((line) => line.trim())
-                              .filter(Boolean)
-                              .slice(0, 4),
-                          };
-                          return { ...prev, experiences };
-                        })
-                      }
-                    />
+                    ))}
                   </div>
-                ))}
+                ) : (
+                  <p>Aucune expérience détectée.</p>
+                )}
               </div>
 
               <Button className="mt-4 w-full" disabled={loading} onClick={validateHybridAndGenerate}>
