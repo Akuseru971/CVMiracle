@@ -64,6 +64,17 @@ function normalizeHeading(heading: string) {
   return clean;
 }
 
+function applyHeadingCase(heading: string, mode: LayoutMetadata["headingCapitalization"]) {
+  if (mode === "uppercase") return heading.toUpperCase();
+  if (mode === "titlecase") {
+    return heading
+      .split(" ")
+      .map((word) => (word ? `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}` : word))
+      .join(" ");
+  }
+  return heading;
+}
+
 function looksHeading(line: string) {
   const clean = line.replace(/:$/, "").trim();
   if (!clean || clean.length > 42) return false;
@@ -88,6 +99,63 @@ function parseSections(text: string): ResumeSection[] {
 
   if (current.lines.length > 0) sections.push(current);
   return sections;
+}
+
+function classifySidebarHeadingsFromOriginal(originalSections: ResumeSection[]) {
+  const sidebarSet = new Set<string>();
+
+  for (const section of originalSections) {
+    const heading = normalizeHeading(section.heading);
+    const averageLineLength =
+      section.lines.length > 0
+        ? section.lines.reduce((sum, line) => sum + line.length, 0) / section.lines.length
+        : 0;
+
+    if (
+      SIDEBAR_HEADINGS.has(heading) ||
+      (section.lines.length <= 6 && averageLineLength < 40)
+    ) {
+      sidebarSet.add(heading);
+    }
+  }
+
+  return sidebarSet;
+}
+
+function rebuildSectionsByOriginalOrder(
+  originalSections: ResumeSection[],
+  optimizedSections: ResumeSection[],
+  metadataOrder: string[],
+) {
+  const optimizedByHeading = new Map<string, ResumeSection>();
+  for (const section of optimizedSections) {
+    const key = normalizeHeading(section.heading);
+    if (!optimizedByHeading.has(key)) {
+      optimizedByHeading.set(key, { heading: key, lines: section.lines });
+    }
+  }
+
+  const skeleton = (metadataOrder.length > 0
+    ? metadataOrder.map((item) => normalizeHeading(item))
+    : originalSections.map((item) => normalizeHeading(item.heading))
+  ).filter(Boolean);
+
+  const rebuilt: ResumeSection[] = [];
+  const used = new Set<string>();
+
+  for (const heading of skeleton) {
+    const section = optimizedByHeading.get(heading);
+    if (!section || section.lines.length === 0) continue;
+    rebuilt.push(section);
+    used.add(heading);
+  }
+
+  for (const [heading, section] of optimizedByHeading.entries()) {
+    if (used.has(heading)) continue;
+    rebuilt.push(section);
+  }
+
+  return rebuilt;
 }
 
 function extractContact(text: string): ContactInfo {
@@ -143,12 +211,12 @@ function parseExperience(lines: string[]) {
   return entries;
 }
 
-function renderExperienceSection(section: ResumeSection) {
+function renderExperienceSection(section: ResumeSection, headingCase: LayoutMetadata["headingCapitalization"]) {
   const entries = parseExperience(section.lines);
 
   return `
     <section class="cv-section block-avoid">
-      <h2 class="section-title">${escapeHtml(section.heading)}</h2>
+      <h2 class="section-title">${escapeHtml(applyHeadingCase(section.heading, headingCase))}</h2>
       <div class="xp-list">
         ${entries
           .map((entry) => {
@@ -176,10 +244,10 @@ function renderExperienceSection(section: ResumeSection) {
   `;
 }
 
-function renderGenericSection(section: ResumeSection) {
+function renderGenericSection(section: ResumeSection, headingCase: LayoutMetadata["headingCapitalization"]) {
   return `
     <section class="cv-section block-avoid">
-      <h2 class="section-title">${escapeHtml(section.heading)}</h2>
+      <h2 class="section-title">${escapeHtml(applyHeadingCase(section.heading, headingCase))}</h2>
       <ul class="section-list">
         ${section.lines.map((line) => `<li>${escapeHtml(line)}</li>`).join("\n")}
       </ul>
@@ -187,9 +255,9 @@ function renderGenericSection(section: ResumeSection) {
   `;
 }
 
-function renderSection(section: ResumeSection) {
-  if (section.heading === "Experience") return renderExperienceSection(section);
-  return renderGenericSection(section);
+function renderSection(section: ResumeSection, headingCase: LayoutMetadata["headingCapitalization"]) {
+  if (section.heading === "Experience") return renderExperienceSection(section, headingCase);
+  return renderGenericSection(section, headingCase);
 }
 
 function renderContact(contact: ContactInfo) {
@@ -205,7 +273,13 @@ function renderCss(variant: TemplateVariant, style: ReturnType<typeof resolveSty
   const leftRatio = metadata.sidebarPosition === "left" ? style.sidebarRatio : 1 - style.sidebarRatio;
   const rightRatio = metadata.sidebarPosition === "left" ? 1 - style.sidebarRatio : style.sidebarRatio;
 
-  const sectionGap = `${style.sectionGap}px`;
+  const sectionGapValue =
+    metadata.spacingRhythm === "tight"
+      ? Math.max(6, style.sectionGap - 1)
+      : metadata.spacingRhythm === "relaxed"
+        ? style.sectionGap + 1
+        : style.sectionGap;
+  const sectionGap = `${sectionGapValue}px`;
   const blockGap = `${style.blockGap}px`;
 
   return `
@@ -323,9 +397,19 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const variant = mapLayoutToTemplate(metadata);
   const style = resolveStyleConfig(metadata, variant);
 
-  const sections = parseSections(args.optimizedResumeText);
-  const mainSections = sections.filter((s) => !SIDEBAR_HEADINGS.has(s.heading));
-  const sideSections = sections.filter((s) => SIDEBAR_HEADINGS.has(s.heading));
+  const originalSections = parseSections(args.originalResumeText);
+  const optimizedSections = parseSections(args.optimizedResumeText);
+  const sections = rebuildSectionsByOriginalOrder(
+    originalSections,
+    optimizedSections,
+    metadata.sectionOrder,
+  );
+
+  const originalSidebarSet = classifySidebarHeadingsFromOriginal(originalSections);
+  const sidebarSet = originalSidebarSet.size > 0 ? originalSidebarSet : SIDEBAR_HEADINGS;
+
+  const mainSections = sections.filter((s) => !sidebarSet.has(normalizeHeading(s.heading)));
+  const sideSections = sections.filter((s) => sidebarSet.has(normalizeHeading(s.heading)));
   const contact = extractContact(args.originalResumeText);
 
   const shouldUseTwoCol = metadata.columnCount === 2 && sideSections.length > 0;
@@ -355,10 +439,16 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
         ${
           shouldUseTwoCol
             ? `<section class="cv-content two-col">
-                <div class="main-col">${mainSections.map(renderSection).join("\n")}</div>
-                <aside class="side-col">${sideSections.map(renderSection).join("\n")}</aside>
+                <div class="main-col">${mainSections
+                  .map((section) => renderSection(section, metadata.headingCapitalization))
+                  .join("\n")}</div>
+                <aside class="side-col">${sideSections
+                  .map((section) => renderSection(section, metadata.headingCapitalization))
+                  .join("\n")}</aside>
               </section>`
-            : `<section class="cv-content">${sections.map(renderSection).join("\n")}</section>`
+            : `<section class="cv-content">${sections
+                .map((section) => renderSection(section, metadata.headingCapitalization))
+                .join("\n")}</section>`
         }
       </main>
     </body>
