@@ -252,9 +252,6 @@ export default function Home() {
               />
 
               <div className="rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 to-white p-4 dark:border-indigo-900/70 dark:from-indigo-950/40 dark:to-slate-950">
-                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
-                  Offre détectée
-                </p>
                 {jobPreviewLoading ? (
                   <p className="text-sm text-slate-500 dark:text-slate-300">Analyse du lien en cours...</p>
                 ) : jobPreview ? (
@@ -270,7 +267,7 @@ export default function Home() {
                   </>
                 ) : (
                   <p className="text-sm text-slate-500 dark:text-slate-300">
-                    Colle le lien pour afficher automatiquement l&apos;entreprise et l&apos;intitulé du poste.
+                    Colle le lien pour afficher le nom de l&apos;entreprise et l&apos;intitulé du poste.
                   </p>
                 )}
               </div>
