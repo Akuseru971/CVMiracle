@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText, encryptText } from "@/lib/crypto";
 import { prisma } from "@/lib/prisma";
-import { sanitizeStructuredCv } from "@/lib/cv-structure";
+import { parseStructuredCvFromText, sanitizeStructuredCv } from "@/lib/cv-structure";
 
 const titleSchema = z.object({
   title: z.string().min(3).max(120),
@@ -90,6 +90,60 @@ export async function PATCH(
   });
 
   return NextResponse.json({ ok: true });
+}
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> },
+) {
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+  }
+
+  const { id } = await context.params;
+  const application = await prisma.jobApplication.findFirst({
+    where: { id, userId: user.id },
+    select: {
+      id: true,
+      title: true,
+      optimizedCvEnc: true,
+    },
+  });
+
+  if (!application) {
+    return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
+  }
+
+  const decrypted = decryptText(application.optimizedCvEnc);
+  let optimizedText = decrypted;
+  let structuredCv = parseStructuredCvFromText(decrypted);
+
+  try {
+    const parsed = JSON.parse(decrypted) as {
+      kind?: string;
+      optimizedText?: string;
+      structuredCv?: Parameters<typeof sanitizeStructuredCv>[0];
+    };
+
+    if (parsed.optimizedText?.trim()) {
+      optimizedText = parsed.optimizedText;
+    }
+
+    if (parsed.kind === "structured-v1" && parsed.structuredCv) {
+      structuredCv = sanitizeStructuredCv(parsed.structuredCv);
+    } else {
+      structuredCv = parseStructuredCvFromText(optimizedText);
+    }
+  } catch {
+  }
+
+  return NextResponse.json({
+    id: application.id,
+    title: application.title,
+    optimizedText,
+    structuredCv,
+  });
 }
 
 export async function DELETE(

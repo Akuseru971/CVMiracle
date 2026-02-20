@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 type User = {
   id: string;
@@ -45,7 +46,12 @@ export default function DashboardPage() {
     optimizedResume: string;
     keywordsIntegrated: string[];
     missingSkills: string[];
+    structuredCv?: StructuredCv;
   } | null>(null);
+  const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
+  const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
+  const [savingStructure, setSavingStructure] = useState(false);
+  const [loadingStructure, setLoadingStructure] = useState(false);
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -110,6 +116,40 @@ export default function DashboardPage() {
     setPreview(data.preview);
     setUser((prev) => (prev ? { ...prev, credits: data.credits } : prev));
     setHistory((prev) => [data.application, ...prev]);
+    setSelectedApplicationId(data.application.id);
+    setStructuredCv(data.preview?.structuredCv ?? null);
+  }
+
+  async function loadStructuredCv(id: string) {
+    setLoadingStructure(true);
+    const res = await fetch(`/api/cv/${id}`);
+    const data = await res.json();
+    setLoadingStructure(false);
+
+    if (!res.ok) {
+      setError(data.error ?? "Impossible de charger la structure.");
+      return;
+    }
+
+    setSelectedApplicationId(id);
+    setStructuredCv(data.structuredCv ?? null);
+  }
+
+  async function saveStructuredCv() {
+    if (!selectedApplicationId || !structuredCv) return;
+
+    setSavingStructure(true);
+    const res = await fetch(`/api/cv/${selectedApplicationId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ structuredCv }),
+    });
+    setSavingStructure(false);
+
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: "Erreur d'enregistrement" }));
+      setError(data.error ?? "Erreur d'enregistrement");
+    }
   }
 
   async function logout() {
@@ -250,6 +290,9 @@ export default function DashboardPage() {
                     <Button variant="secondary" onClick={() => renameApplication(item.id)}>
                       <Pencil size={16} />
                     </Button>
+                    <Button variant="secondary" onClick={() => loadStructuredCv(item.id)}>
+                      Hybride
+                    </Button>
                     <Button variant="secondary" onClick={() => deleteApplication(item.id)}>
                       <Trash2 size={16} />
                     </Button>
@@ -258,6 +301,147 @@ export default function DashboardPage() {
               ))
             )}
           </div>
+        </Card>
+
+        <Card className="mt-5">
+          <h2 className="mb-4 text-lg font-semibold">Mode hybride (édition des catégories CV)</h2>
+
+          {!structuredCv ? (
+            <p className="text-sm text-slate-600 dark:text-slate-300">
+              {loadingStructure
+                ? "Chargement de la structure..."
+                : "Génère un CV ou clique sur “Hybride” dans l’historique pour éditer la structure."}
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <label className="text-xs font-medium">Professional Summary</label>
+              <textarea
+                className="h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                value={structuredCv.summary}
+                onChange={(e) =>
+                  setStructuredCv((prev) => (prev ? { ...prev, summary: e.target.value } : prev))
+                }
+              />
+
+              <p className="text-xs font-medium">Professional Experience</p>
+              <div className="space-y-3">
+                {structuredCv.experiences.map((experience, index) => (
+                  <div key={`${experience.title}-${index}`} className="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+                    <Input
+                      placeholder="Poste"
+                      value={experience.title}
+                      onChange={(e) =>
+                        setStructuredCv((prev) => {
+                          if (!prev) return prev;
+                          const experiences = [...prev.experiences];
+                          experiences[index] = { ...experiences[index], title: e.target.value };
+                          return { ...prev, experiences };
+                        })
+                      }
+                    />
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <Input
+                        placeholder="Entreprise — Lieu"
+                        value={experience.company}
+                        onChange={(e) =>
+                          setStructuredCv((prev) => {
+                            if (!prev) return prev;
+                            const experiences = [...prev.experiences];
+                            experiences[index] = { ...experiences[index], company: e.target.value };
+                            return { ...prev, experiences };
+                          })
+                        }
+                      />
+                      <Input
+                        placeholder="Dates"
+                        value={experience.date}
+                        onChange={(e) =>
+                          setStructuredCv((prev) => {
+                            if (!prev) return prev;
+                            const experiences = [...prev.experiences];
+                            experiences[index] = { ...experiences[index], date: e.target.value };
+                            return { ...prev, experiences };
+                          })
+                        }
+                      />
+                    </div>
+                    <textarea
+                      className="mt-2 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                      placeholder="1 bullet par ligne (max 4)"
+                      value={experience.bullets.join("\n")}
+                      onChange={(e) =>
+                        setStructuredCv((prev) => {
+                          if (!prev) return prev;
+                          const experiences = [...prev.experiences];
+                          experiences[index] = {
+                            ...experiences[index],
+                            bullets: e.target.value
+                              .split("\n")
+                              .map((line) => line.trim())
+                              .filter(Boolean)
+                              .slice(0, 4),
+                          };
+                          return { ...prev, experiences };
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid gap-2 sm:grid-cols-3">
+                <textarea
+                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                  placeholder="Education (1 ligne par entrée)"
+                  value={structuredCv.education.join("\n")}
+                  onChange={(e) =>
+                    setStructuredCv((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            education: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                          }
+                        : prev,
+                    )
+                  }
+                />
+                <textarea
+                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                  placeholder="Skills (1 ligne par entrée)"
+                  value={structuredCv.skills.join("\n")}
+                  onChange={(e) =>
+                    setStructuredCv((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            skills: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                          }
+                        : prev,
+                    )
+                  }
+                />
+                <textarea
+                  className="h-24 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                  placeholder="Languages (1 ligne par entrée)"
+                  value={structuredCv.languages.join("\n")}
+                  onChange={(e) =>
+                    setStructuredCv((prev) =>
+                      prev
+                        ? {
+                            ...prev,
+                            languages: e.target.value.split("\n").map((line) => line.trim()).filter(Boolean),
+                          }
+                        : prev,
+                    )
+                  }
+                />
+              </div>
+
+              <Button className="w-full" onClick={saveStructuredCv}>
+                {savingStructure ? "Enregistrement..." : "Enregistrer la structure CV"}
+              </Button>
+            </div>
+          )}
         </Card>
       </main>
     </div>
