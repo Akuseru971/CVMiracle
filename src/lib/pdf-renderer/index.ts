@@ -15,41 +15,69 @@ type RenderArgs = {
 export async function renderIntelligentPdf(args: RenderArgs) {
   const { html, metadata, variant } = buildIntelligentResumeHtml(args);
 
-  const executablePath =
-    process.env.NODE_ENV === "production"
-      ? await chromium.executablePath()
-      : process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath());
+  const chromiumPath = await chromium.executablePath().catch(() => "");
+  const candidates = Array.from(
+    new Set(
+      [
+        process.env.PUPPETEER_EXECUTABLE_PATH,
+        process.env.CHROMIUM_PATH,
+        chromiumPath,
+        "/usr/bin/chromium-browser",
+        "/usr/bin/chromium",
+      ].filter((value): value is string => Boolean(value)),
+    ),
+  );
 
-  const browser = await puppeteer.launch({
-    args: chromium.args,
-    defaultViewport: {
-      width: 794,
-      height: 1123,
-      deviceScaleFactor: 1,
-    },
-    executablePath,
-    headless: true,
-  });
+  const launchArgs = Array.from(
+    new Set([
+      ...chromium.args,
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--font-render-hinting=none",
+    ]),
+  );
 
-  try {
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "domcontentloaded" });
-    await page.evaluateHandle("document.fonts.ready");
-    await page.emulateMediaType("print");
+  let lastError: unknown = null;
 
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-      margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
-      preferCSSPageSize: true,
-    });
+  for (const executablePath of candidates) {
+    try {
+      const browser = await puppeteer.launch({
+        args: launchArgs,
+        defaultViewport: {
+          width: 794,
+          height: 1123,
+          deviceScaleFactor: 1,
+        },
+        executablePath,
+        headless: true,
+      });
 
-    return {
-      buffer: Buffer.from(pdfBuffer),
-      layoutMetadata: metadata,
-      templateVariant: variant,
-    };
-  } finally {
-    await browser.close();
+      try {
+        const page = await browser.newPage();
+        await page.setContent(html, { waitUntil: "domcontentloaded" });
+        await page.evaluateHandle("document.fonts.ready");
+        await page.emulateMediaType("print");
+
+        const pdfBuffer = await page.pdf({
+          format: "A4",
+          printBackground: true,
+          margin: { top: "0mm", right: "0mm", bottom: "0mm", left: "0mm" },
+          preferCSSPageSize: true,
+        });
+
+        return {
+          buffer: Buffer.from(pdfBuffer),
+          layoutMetadata: metadata,
+          templateVariant: variant,
+        };
+      } finally {
+        await browser.close();
+      }
+    } catch (error) {
+      lastError = error;
+    }
   }
+
+  throw lastError ?? new Error("Aucun exécutable Chromium disponible pour le rendu PDF.");
 }

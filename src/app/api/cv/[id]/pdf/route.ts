@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText } from "@/lib/crypto";
+import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 import { normalizeTemplateChoice } from "@/lib/template-options";
@@ -71,9 +72,14 @@ export async function GET(
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
     });
   } catch {
-    return NextResponse.json(
-      { error: "Rendu template premium indisponible. Aucun fallback générique autorisé." },
-      { status: 503 },
+    pdf = await buildResumePdfBuffer(
+      application.title,
+      resumeTextForTemplate,
+      application.matchScore,
+      {
+        templateChoice: forcedTemplateChoice ?? application.templateChoice,
+        originalResumeText: originalCvText,
+      },
     );
   }
 
