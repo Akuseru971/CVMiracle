@@ -37,7 +37,7 @@ export async function GET(
 
   const decrypted = decryptText(application.optimizedCvEnc);
   let resumeTextForTemplate = decrypted;
-  let legacyPdfAssetBuffer: Buffer | null = null;
+  let hasLegacyPdfAsset = false;
 
   try {
     const parsed = JSON.parse(decrypted) as {
@@ -49,12 +49,9 @@ export async function GET(
     };
 
     if (parsed.kind === "pdf-asset") {
+      hasLegacyPdfAsset = true;
       if (parsed.optimizedText?.trim()) {
         resumeTextForTemplate = parsed.optimizedText;
-      }
-
-      if (parsed.base64) {
-        legacyPdfAssetBuffer = Buffer.from(parsed.base64, "base64");
       }
     }
   } catch {
@@ -74,14 +71,11 @@ export async function GET(
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
     });
   } catch {
-    if (legacyPdfAssetBuffer) {
-      const headers = new Headers();
-      headers.set("Content-Type", "application/pdf");
-      headers.set(
-        "Content-Disposition",
-        `${inline ? "inline" : "attachment"}; filename="${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf"`,
+    if (hasLegacyPdfAsset) {
+      return NextResponse.json(
+        { error: "Ancien format détecté. Relance une génération pour appliquer le template premium." },
+        { status: 409 },
       );
-      return new NextResponse(new Uint8Array(legacyPdfAssetBuffer), { headers });
     }
 
     return NextResponse.json(
