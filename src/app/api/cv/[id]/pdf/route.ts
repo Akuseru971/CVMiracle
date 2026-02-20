@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export const runtime = "nodejs";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const user = await getAuthUser();
@@ -16,6 +16,9 @@ export async function GET(
   }
 
   const { id } = await context.params;
+
+  const { searchParams } = new URL(request.url);
+  const inline = searchParams.get("inline") === "1";
 
   const application = await prisma.jobApplication.findFirst({
     where: { id, userId: user.id },
@@ -46,7 +49,7 @@ export async function GET(
       headers.set("Content-Type", parsed.mimeType ?? "application/pdf");
       headers.set(
         "Content-Disposition",
-        `attachment; filename="${parsed.fileName ?? `${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf`}"`,
+        `${inline ? "inline" : "attachment"}; filename="${parsed.fileName ?? `${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf`}"`,
       );
       return new NextResponse(new Uint8Array(buffer), { headers });
     }
@@ -59,7 +62,7 @@ export async function GET(
   headers.set("Content-Type", "application/pdf");
   headers.set(
     "Content-Disposition",
-    `attachment; filename="${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf"`,
+    `${inline ? "inline" : "attachment"}; filename="${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf"`,
   );
 
   return new NextResponse(new Uint8Array(pdf), { headers });

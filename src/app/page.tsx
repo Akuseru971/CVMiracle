@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Upload, Link2, FileCheck2, Building2, BriefcaseBusiness, FileText } from "lucide-react";
+import {
+  Sparkles,
+  Upload,
+  Link2,
+  FileCheck2,
+  Building2,
+  BriefcaseBusiness,
+  FileText,
+  Download,
+} from "lucide-react";
 import { AnimatedBackground } from "@/components/animated-background";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -37,6 +46,10 @@ export default function Home() {
     optimizedResume: string;
     keywordsIntegrated: string[];
     missingSkills: string[];
+  } | null>(null);
+  const [generatedApplication, setGeneratedApplication] = useState<{
+    id: string;
+    title: string;
   } | null>(null);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
@@ -146,6 +159,10 @@ export default function Home() {
 
     setPreview(data.preview);
     setUser((prev) => (prev ? { ...prev, credits: data.credits } : prev));
+    setGeneratedApplication({
+      id: data.application.id,
+      title: data.application.title,
+    });
   }
 
   async function onGenerate(e: React.FormEvent) {
@@ -336,6 +353,29 @@ export default function Home() {
             <h2 className="mb-3 text-lg font-semibold">Résultat</h2>
             {preview ? (
               <>
+                {generatedApplication ? (
+                  <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 dark:border-emerald-900 dark:bg-emerald-950/20">
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                        CV refabriqué prêt
+                      </p>
+                      <a href={`/api/cv/${generatedApplication.id}/pdf`}>
+                        <Button variant="secondary" className="h-9 px-3 text-xs">
+                          <Download size={14} /> Télécharger
+                        </Button>
+                      </a>
+                    </div>
+                    <p className="mb-2 truncate text-xs text-slate-600 dark:text-slate-300">
+                      {generatedApplication.title}
+                    </p>
+                    <iframe
+                      src={`/api/cv/${generatedApplication.id}/pdf?inline=1`}
+                      title="Aperçu CV refabriqué"
+                      className="h-56 w-full rounded-lg border border-emerald-200 bg-white dark:border-emerald-900 dark:bg-slate-900"
+                    />
+                  </div>
+                ) : null}
+
                 <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900">
                   {preview.optimizedResume}
                 </pre>
