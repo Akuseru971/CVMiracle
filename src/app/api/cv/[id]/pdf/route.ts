@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText } from "@/lib/crypto";
-import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 
@@ -37,6 +36,8 @@ export async function GET(
   }
 
   const decrypted = decryptText(application.optimizedCvEnc);
+  let resumeTextForTemplate = decrypted;
+  let legacyPdfAssetBuffer: Buffer | null = null;
 
   try {
     const parsed = JSON.parse(decrypted) as {
@@ -47,25 +48,24 @@ export async function GET(
       optimizedText?: string;
     };
 
-    if (parsed.kind === "pdf-asset" && parsed.base64) {
-      const buffer = Buffer.from(parsed.base64, "base64");
-      const headers = new Headers();
-      headers.set("Content-Type", parsed.mimeType ?? "application/pdf");
-      headers.set(
-        "Content-Disposition",
-        `${inline ? "inline" : "attachment"}; filename="${parsed.fileName ?? `${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf`}"`,
-      );
-      return new NextResponse(new Uint8Array(buffer), { headers });
+    if (parsed.kind === "pdf-asset") {
+      if (parsed.optimizedText?.trim()) {
+        resumeTextForTemplate = parsed.optimizedText;
+      }
+
+      if (parsed.base64) {
+        legacyPdfAssetBuffer = Buffer.from(parsed.base64, "base64");
+      }
     }
   } catch {
   }
 
-  let pdf: Buffer;
+  let pdf: Buffer | null = null;
 
   try {
     pdf = await renderResumePdfWithPuppeteer({
       title: application.title,
-      resumeText: decrypted,
+      resumeText: resumeTextForTemplate,
       templateChoice: application.templateChoice as
         | "Original Design Enhanced"
         | "Modern Executive"
@@ -74,7 +74,20 @@ export async function GET(
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
     });
   } catch {
-    pdf = await buildResumePdfBuffer(application.title, decrypted);
+    if (legacyPdfAssetBuffer) {
+      const headers = new Headers();
+      headers.set("Content-Type", "application/pdf");
+      headers.set(
+        "Content-Disposition",
+        `${inline ? "inline" : "attachment"}; filename="${application.title.replace(/[^a-z0-9]/gi, "_")}.pdf"`,
+      );
+      return new NextResponse(new Uint8Array(legacyPdfAssetBuffer), { headers });
+    }
+
+    return NextResponse.json(
+      { error: "Rendu PDF premium indisponible temporairement" },
+      { status: 503 },
+    );
   }
 
   const headers = new Headers();
