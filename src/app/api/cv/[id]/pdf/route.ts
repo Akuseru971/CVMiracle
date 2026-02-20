@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText } from "@/lib/crypto";
-import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 import { normalizeTemplateChoice } from "@/lib/template-options";
@@ -42,7 +41,6 @@ export async function GET(
   const decrypted = decryptText(application.optimizedCvEnc);
   const originalCvText = decryptText(application.originalCvEnc);
   let resumeTextForTemplate = decrypted;
-  let hasLegacyPdfAsset = false;
 
   try {
     const parsed = JSON.parse(decrypted) as {
@@ -54,7 +52,6 @@ export async function GET(
     };
 
     if (parsed.kind === "pdf-asset") {
-      hasLegacyPdfAsset = true;
       if (parsed.optimizedText?.trim()) {
         resumeTextForTemplate = parsed.optimizedText;
       }
@@ -74,11 +71,10 @@ export async function GET(
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
     });
   } catch {
-    if (hasLegacyPdfAsset) {
-      pdf = await buildResumePdfBuffer(application.title, resumeTextForTemplate, application.matchScore);
-    } else {
-      pdf = await buildResumePdfBuffer(application.title, resumeTextForTemplate, application.matchScore);
-    }
+    return NextResponse.json(
+      { error: "Rendu template premium indisponible. Aucun fallback générique autorisé." },
+      { status: 503 },
+    );
   }
 
   const headers = new Headers();

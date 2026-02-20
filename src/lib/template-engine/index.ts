@@ -401,22 +401,6 @@ ul{font-size:11px;line-height:1.4;margin-left:18px;}
   return templates[choice];
 }
 
-function withPrintRules(html: string) {
-  const printCss = `<style>
-@page { size: A4; margin: 8mm; }
-* { box-sizing: border-box; }
-body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.container, .wrapper { max-width: 190mm; }
-.section, .job, .header, .sidebar, .main { break-inside: avoid; page-break-inside: avoid; }
-p, li { orphans: 3; widows: 3; }
-@media print {
-  .container, .wrapper { margin: 0 auto; }
-}
-</style>`;
-
-  return html.replace("</head>", `${printCss}</head>`);
-}
-
 export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const templateChoice = normalizeTemplateChoice(args.templateChoice);
   const template = buildTemplate(templateChoice);
@@ -432,7 +416,7 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
     .replaceAll("{{SKILLS_BLOCK}}", blocks.skillsBlock);
 
   return {
-    html: withPrintRules(hydrated),
+    html: hydrated,
     metadata: { templateChoice },
     variant: templateChoice,
   };
