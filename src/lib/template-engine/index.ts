@@ -128,7 +128,10 @@ function renderExperienceBlock(lines: string[]) {
         .join("\n");
 
       return `<div class="job">
-  <div class="job-title">${escapeHtml(entry.title)}${entry.date ? `<span class="job-date">${escapeHtml(entry.date)}</span>` : ""}</div>
+  <div class="job-header">
+    <span class="job-title">${escapeHtml(entry.title)}</span>
+    ${entry.date ? `<span class="job-date">${escapeHtml(entry.date)}</span>` : ""}
+  </div>
   ${bullets ? `<ul>${bullets}</ul>` : ""}
 </div>`;
     })
@@ -180,57 +183,55 @@ function buildTemplate(choice: TemplateChoice) {
 <meta charset="UTF-8">
 <style>
 body{
-  font-family: 'Inter', Arial, sans-serif;
-  margin:0;
-  padding:40px;
-  color:#1a1a1a;
-}
-.container{
-  max-width:800px;
-  margin:auto;
+  font-family:'Inter',sans-serif;
+  margin:50px;
+  color:#1f2937;
 }
 .header{
-  border-bottom:2px solid #0f172a;
-  padding-bottom:10px;
+  margin-bottom:25px;
 }
 .name{
-  font-size:26px;
+  font-size:32px;
   font-weight:700;
-  color:#0f172a;
+  letter-spacing:0.5px;
 }
 .contact{
   font-size:11px;
-  margin-top:5px;
+  color:#6b7280;
+  margin-top:4px;
 }
 .section{
-  margin-top:20px;
+  margin-top:28px;
 }
 .section-title{
   font-size:13px;
   font-weight:700;
-  color:#0f172a;
-  margin-bottom:8px;
   text-transform:uppercase;
+  letter-spacing:1px;
+  color:#111827;
+  margin-bottom:10px;
 }
 .job{
-  margin-bottom:12px;
+  margin-bottom:16px;
 }
-.job-title{
+.job-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
   font-weight:600;
 }
 .job-date{
-  float:right;
-  font-size:11px;
+  font-size:10px;
+  color:#6b7280;
 }
 ul{
-  margin:5px 0 0 18px;
+  margin:6px 0 0 18px;
   font-size:11px;
-  line-height:1.4;
+  line-height:1.45;
 }
 </style>
 </head>
 <body>
-<div class="container">
 <div class="header">
 <div class="name">{{FULL_NAME}}</div>
 <div class="contact">{{CONTACT_LINE}}</div>
@@ -251,7 +252,6 @@ ul{
 {{SKILLS_BLOCK}}
 </div>
 
-</div>
 </body>
 </html>`,
     "Modern Sidebar": `<!DOCTYPE html>
@@ -259,26 +259,57 @@ ul{
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Inter,sans-serif;margin:0;}
-.wrapper{display:flex;max-width:800px;margin:auto;}
+body{font-family:Inter;margin:0;}
+.wrapper{display:flex;max-width:850px;margin:auto;}
 .sidebar{
-  width:30%;
-  background:#1e3a8a;
+  width:32%;
+  background:#111827;
   color:white;
-  padding:30px;
+  padding:40px 25px;
+}
+.sidebar .name{
+  font-size:26px;
+  font-weight:700;
+}
+.sidebar p{
+  font-size:11px;
+  margin-top:6px;
+  color:#d1d5db;
+}
+.sidebar h3{
+  font-size:12px;
+  margin-top:25px;
+  text-transform:uppercase;
+  letter-spacing:1px;
 }
 .main{
-  width:70%;
-  padding:30px;
+  width:68%;
+  padding:45px 40px;
 }
-.name{font-size:22px;font-weight:700;}
 .section-title{
-  font-size:12px;
+  font-size:13px;
   font-weight:700;
   text-transform:uppercase;
-  margin-top:20px;
+  margin-bottom:12px;
 }
-ul{font-size:11px;line-height:1.4;margin-left:18px;}
+.job{
+  margin-bottom:16px;
+}
+.job-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:600;
+}
+.job-date{
+  font-size:10px;
+  color:#6b7280;
+}
+ul{
+  font-size:11px;
+  line-height:1.4;
+  margin-left:18px;
+}
 </style>
 </head>
 <body>
@@ -303,16 +334,45 @@ ul{font-size:11px;line-height:1.4;margin-left:18px;}
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Arial;margin:30px;color:#000;}
-h1{font-size:20px;margin-bottom:5px;}
-h2{font-size:12px;margin-top:15px;border-bottom:1px solid #000;}
-p,li{font-size:11px;line-height:1.3;}
-ul{margin-left:18px;}
+body{
+  font-family:Arial;
+  margin:40px;
+  color:#000;
+}
+h1{
+  font-size:28px;
+  margin-bottom:6px;
+}
+.contact{
+  font-size:11px;
+  margin-bottom:20px;
+}
+h2{
+  font-size:12px;
+  font-weight:700;
+  margin-top:20px;
+  border-bottom:1px solid #000;
+  padding-bottom:4px;
+}
+.job-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:11px;
+  font-weight:600;
+}
+.job-date{
+  font-size:10px;
+}
+ul{
+  font-size:10.8px;
+  line-height:1.4;
+  margin-left:18px;
+}
 </style>
 </head>
 <body>
 <h1>{{FULL_NAME}}</h1>
-<p>{{CONTACT_LINE}}</p>
+<p class="contact">{{CONTACT_LINE}}</p>
 
 <h2>Professional Summary</h2>
 <p>{{SUMMARY}}</p>
@@ -332,28 +392,56 @@ ul{margin-left:18px;}
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Inter;margin:0;}
-.header{
-  background:#e5e7eb;
-  padding:25px;
+body{font-family:Inter;margin:0;color:#111;}
+.top{
+  background:#f3f4f6;
+  padding:35px 50px;
 }
-.name{font-size:24px;font-weight:700;}
-.section{padding:30px;}
+.name{
+  font-size:30px;
+  font-weight:700;
+}
+.contact{
+  font-size:11px;
+  margin-top:6px;
+  color:#4b5563;
+}
+.content{
+  padding:40px 50px;
+}
 .section-title{
   font-size:13px;
+  text-transform:uppercase;
   font-weight:700;
-  margin-bottom:8px;
+  margin-top:25px;
 }
-ul{font-size:11px;margin-left:18px;}
+.job{
+  margin-bottom:16px;
+}
+.job-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:600;
+}
+.job-date{
+  font-size:10px;
+  color:#6b7280;
+}
+ul{
+  font-size:11px;
+  margin-left:18px;
+  line-height:1.45;
+}
 </style>
 </head>
 <body>
-<div class="header">
+<div class="top">
 <div class="name">{{FULL_NAME}}</div>
-<div>{{CONTACT_LINE}}</div>
+<div class="contact">{{CONTACT_LINE}}</div>
 </div>
 
-<div class="section">
+<div class="content">
 <div class="section-title">Experience</div>
 {{EXPERIENCE_BLOCK}}
 
@@ -370,20 +458,54 @@ ul{font-size:11px;margin-left:18px;}
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Inter;margin:40px;color:#111;}
-.name{font-size:26px;font-weight:700;}
-.line{height:4px;background:#2563eb;margin:10px 0 20px;}
+body{
+  font-family:Inter;
+  margin:45px;
+  color:#1e293b;
+}
+.name{
+  font-size:32px;
+  font-weight:700;
+}
+.line{
+  height:4px;
+  width:60px;
+  background:#0f172a;
+  margin:10px 0 20px 0;
+}
+.contact{
+  font-size:11px;
+  color:#475569;
+}
 .section-title{
   font-size:13px;
   font-weight:700;
-  margin-top:20px;
+  margin-top:25px;
+  text-transform:uppercase;
 }
-ul{font-size:11px;line-height:1.4;margin-left:18px;}
+.job{
+  margin-bottom:16px;
+}
+.job-header{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  font-weight:600;
+}
+.job-date{
+  font-size:10px;
+  color:#6b7280;
+}
+ul{
+  font-size:11px;
+  margin-left:18px;
+  line-height:1.45;
+}
 </style>
 </head>
 <body>
 <div class="name">{{FULL_NAME}}</div>
-<div>{{CONTACT_LINE}}</div>
+<div class="contact">{{CONTACT_LINE}}</div>
 <div class="line"></div>
 
 <div class="section-title">Experience</div>
@@ -401,6 +523,21 @@ ul{font-size:11px;line-height:1.4;margin-left:18px;}
   return templates[choice];
 }
 
+function withPrintReliability(html: string) {
+  const printStyle = `<style>
+@page { size: A4; margin: 10mm; }
+html, body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.job, .section, .header, .top, .content, .sidebar, .main { break-inside: avoid; page-break-inside: avoid; }
+ul { margin-top: 6px; margin-bottom: 0; }
+li { margin: 0; }
+@media print {
+  .wrapper { max-width: 190mm; margin: 0 auto; }
+}
+</style>`;
+
+  return html.replace("</head>", `${printStyle}</head>`);
+}
+
 export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const templateChoice = normalizeTemplateChoice(args.templateChoice);
   const template = buildTemplate(templateChoice);
@@ -416,7 +553,7 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
     .replaceAll("{{SKILLS_BLOCK}}", blocks.skillsBlock);
 
   return {
-    html: hydrated,
+    html: withPrintReliability(hydrated),
     metadata: { templateChoice },
     variant: templateChoice,
   };
