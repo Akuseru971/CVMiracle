@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sparkles, Upload, Link2, FileCheck2 } from "lucide-react";
+import { Sparkles, Upload, Link2, FileCheck2, Building2, BriefcaseBusiness, FileText } from "lucide-react";
 import { AnimatedBackground } from "@/components/animated-background";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,12 @@ type User = {
   email: string;
   fullName: string | null;
   credits: number;
+};
+
+type JobPreview = {
+  title: string;
+  company: string;
+  sourceUrl: string;
 };
 
 const templateChoices = ["Original Design Enhanced", "Modern Executive", "Minimal ATS"] as const;
@@ -32,6 +38,9 @@ export default function Home() {
     keywordsIntegrated: string[];
     missingSkills: string[];
   } | null>(null);
+  const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
+  const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
+  const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
 
   const [showAuthPanel, setShowAuthPanel] = useState(false);
   const [pendingGenerate, setPendingGenerate] = useState(false);
@@ -52,6 +61,55 @@ export default function Home() {
 
     void bootstrap();
   }, []);
+
+  useEffect(() => {
+    if (!jobUrl) {
+      setJobPreview(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timeout = setTimeout(async () => {
+      try {
+        setJobPreviewLoading(true);
+        const res = await fetch(`/api/job/preview?url=${encodeURIComponent(jobUrl)}`);
+        const data = await res.json();
+        if (!cancelled && res.ok) {
+          setJobPreview(data.preview);
+        }
+        if (!cancelled && !res.ok) {
+          setJobPreview(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setJobPreview(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setJobPreviewLoading(false);
+        }
+      }
+    }, 700);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [jobUrl]);
+
+  useEffect(() => {
+    if (!file) {
+      setCvObjectUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setCvObjectUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
 
   async function callGenerate() {
     if (!file) {
@@ -193,6 +251,30 @@ export default function Home() {
                 required
               />
 
+              <div className="rounded-xl border border-indigo-200/70 bg-gradient-to-br from-indigo-50 to-white p-4 dark:border-indigo-900/70 dark:from-indigo-950/40 dark:to-slate-950">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-indigo-700 dark:text-indigo-300">
+                  Offre détectée
+                </p>
+                {jobPreviewLoading ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-300">Analyse du lien en cours...</p>
+                ) : jobPreview ? (
+                  <>
+                    <div className="mb-2 flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                      <Building2 size={16} className="text-indigo-500" />
+                      <span className="font-medium">{jobPreview.company}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-200">
+                      <BriefcaseBusiness size={16} className="text-indigo-500" />
+                      <span className="font-medium">{jobPreview.title}</span>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-sm text-slate-500 dark:text-slate-300">
+                    Colle le lien pour afficher automatiquement l&apos;entreprise et l&apos;intitulé du poste.
+                  </p>
+                )}
+              </div>
+
               <select
                 value={templateChoice}
                 onChange={(e) =>
@@ -213,6 +295,33 @@ export default function Home() {
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 required
               />
+
+              <div className="rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-950">
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  Aperçu CV
+                </p>
+                {!file ? (
+                  <p className="text-sm text-slate-500 dark:text-slate-300">
+                    Ajoute ton CV pour voir son aperçu visuel.
+                  </p>
+                ) : file.type.includes("pdf") && cvObjectUrl ? (
+                  <iframe
+                    src={cvObjectUrl}
+                    className="h-56 w-full rounded-lg border border-slate-200 dark:border-slate-800"
+                    title="Aperçu PDF"
+                  />
+                ) : (
+                  <div className="flex h-56 w-full items-center justify-center rounded-lg border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 dark:border-slate-800 dark:from-slate-900 dark:to-slate-950">
+                    <div className="text-center">
+                      <div className="mx-auto mb-3 inline-flex rounded-xl bg-slate-200 p-3 dark:bg-slate-800">
+                        <FileText size={22} />
+                      </div>
+                      <p className="max-w-[220px] truncate text-sm font-medium">{file.name}</p>
+                      <p className="text-xs text-slate-500">Prévisualisation stylée DOCX</p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
