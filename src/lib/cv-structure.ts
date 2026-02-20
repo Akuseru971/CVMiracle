@@ -205,3 +205,27 @@ export function sanitizeStructuredCv(input: StructuredCv): StructuredCv {
     additional: (input.additional ?? []).map((line) => line.trim()).filter(Boolean).slice(0, 12),
   };
 }
+
+export function structuredCvToText(input: StructuredCv) {
+  const safe = sanitizeStructuredCv(input);
+
+  const experienceText = safe.experiences
+    .map((entry) => {
+      const headerParts = [entry.title, entry.company, entry.date].filter(Boolean);
+      const header = headerParts.join(" | ");
+      const bullets = entry.bullets.map((bullet) => `- ${bullet}`).join("\n");
+      return `${header}${bullets ? `\n${bullets}` : ""}`;
+    })
+    .join("\n\n");
+
+  const sections = [
+    safe.summary ? `Summary\n${safe.summary}` : "",
+    experienceText ? `Experience\n${experienceText}` : "",
+    safe.education.length ? `Education\n${safe.education.map((item) => `- ${item}`).join("\n")}` : "",
+    safe.skills.length ? `Skills\n${safe.skills.map((item) => `- ${item}`).join("\n")}` : "",
+    safe.languages.length ? `Languages\n${safe.languages.map((item) => `- ${item}`).join("\n")}` : "",
+    safe.additional.length ? `Additional\n${safe.additional.map((item) => `- ${item}`).join("\n")}` : "",
+  ].filter(Boolean);
+
+  return sections.join("\n\n");
+}

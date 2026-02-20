@@ -8,7 +8,12 @@ import { optimizeResumeWithAI } from "@/lib/openai";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
-import { parseStructuredCvFromText } from "@/lib/cv-structure";
+import {
+  parseStructuredCvFromText,
+  sanitizeStructuredCv,
+  structuredCvToText,
+  type StructuredCv,
+} from "@/lib/cv-structure";
 
 export const runtime = "nodejs";
 
@@ -37,6 +42,7 @@ export async function POST(request: Request) {
   const rawJobUrl = formData.get("jobUrl");
   const rawTemplateChoice = formData.get("templateChoice");
   const file = formData.get("cvFile");
+  const rawStructuredCv = formData.get("structuredCv");
 
   const parsed = schema.safeParse({
     jobUrl: rawJobUrl,
@@ -52,7 +58,18 @@ export async function POST(request: Request) {
     parseCvFile(file),
   ]);
 
-  const cvText = parsedCv.text;
+  let cvText = parsedCv.text;
+  let confirmedStructuredCv: StructuredCv | null = null;
+
+  if (typeof rawStructuredCv === "string" && rawStructuredCv.trim()) {
+    try {
+      const parsedStructured = sanitizeStructuredCv(JSON.parse(rawStructuredCv) as StructuredCv);
+      confirmedStructuredCv = parsedStructured;
+      cvText = structuredCvToText(parsedStructured);
+    } catch {
+      confirmedStructuredCv = null;
+    }
+  }
 
   const aiResult = await optimizeResumeWithAI({
     jobOfferText,
@@ -60,7 +77,7 @@ export async function POST(request: Request) {
     templateChoice: parsed.data.templateChoice,
   });
 
-  const structuredCv = parseStructuredCvFromText(aiResult.optimizedResume);
+  const structuredCv = confirmedStructuredCv ?? parseStructuredCvFromText(aiResult.optimizedResume);
   const optimizedPayload = JSON.stringify({
     kind: "structured-v1",
     optimizedText: aiResult.optimizedResume,

@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { z } from "zod";
 import { buildUserPrompt, SYSTEM_PROMPT } from "@/lib/ai-prompt";
 import type { TemplateChoice } from "@/lib/template-options";
+import type { StructuredCv } from "@/lib/cv-structure";
 
 const outputSchema = z.object({
   optimizedResume: z.string().min(50),
@@ -19,6 +20,25 @@ const replacementsSchema = z.object({
       to: z.string().min(3),
     }),
   ),
+});
+
+const structuredCvSchema = z.object({
+  summary: z.string().optional().default(""),
+  experiences: z
+    .array(
+      z.object({
+        title: z.string().optional().default(""),
+        company: z.string().optional().default(""),
+        date: z.string().optional().default(""),
+        bullets: z.array(z.string()).optional().default([]),
+      }),
+    )
+    .optional()
+    .default([]),
+  education: z.array(z.string()).optional().default([]),
+  skills: z.array(z.string()).optional().default([]),
+  languages: z.array(z.string()).optional().default([]),
+  additional: z.array(z.string()).optional().default([]),
 });
 
 export async function optimizeResumeWithAI(args: {
@@ -93,4 +113,44 @@ export async function generateDocxReplacements(args: {
   }
 
   return parsed.data.replacements;
+}
+
+export async function extractStructuredCvWithAI(args: {
+  cvText: string;
+  jobOfferText: string;
+}): Promise<StructuredCv | null> {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const completion = await client.chat.completions.create({
+    model,
+    response_format: { type: "json_object" },
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Extract a resume into strict JSON fields. Never invent data. Keep only information present in CV text. Limit each experience to maximum 4 bullets.",
+      },
+      {
+        role: "user",
+        content: `Job offer context:\n${args.jobOfferText.slice(0, 8000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape: { summary, experiences:[{title,company,date,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = structuredCvSchema.safeParse(JSON.parse(raw));
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data as StructuredCv;
 }

@@ -31,6 +31,8 @@ type Application = {
 
 const templateChoices = TEMPLATE_CHOICES;
 
+type Step = 1 | 2 | 3;
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -42,6 +44,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [history, setHistory] = useState<Application[]>([]);
+  const [step, setStep] = useState<Step>(1);
   const [preview, setPreview] = useState<{
     optimizedResume: string;
     keywordsIntegrated: string[];
@@ -50,8 +53,10 @@ export default function DashboardPage() {
   } | null>(null);
   const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null);
   const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
+  const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
   const [savingStructure, setSavingStructure] = useState(false);
   const [loadingStructure, setLoadingStructure] = useState(false);
+  const [preparingStructure, setPreparingStructure] = useState(false);
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -85,10 +90,41 @@ export default function DashboardPage() {
     };
   }, [router]);
 
-  async function generateCv(e: React.FormEvent) {
+  async function prepareHybridStep(e: React.FormEvent) {
     e.preventDefault();
     if (!file) {
       setError("Ajoute un CV PDF ou DOCX.");
+      return;
+    }
+
+    setPreparingStructure(true);
+    setError("");
+
+    const formData = new FormData();
+    formData.append("jobUrl", jobUrl);
+    formData.append("cvFile", file);
+
+    const res = await fetch("/api/cv/structure-preview", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await res.json();
+    setPreparingStructure(false);
+
+    if (!res.ok) {
+      setError(data.error ?? "Erreur de génération.");
+      return;
+    }
+
+    setStructuredCv(data.structuredCv ?? null);
+    setStructureSource(data.source ?? null);
+    setStep(2);
+  }
+
+  async function generateFinalCv() {
+    if (!file || !structuredCv) {
+      setError("Données incomplètes pour la génération finale.");
       return;
     }
 
@@ -99,6 +135,7 @@ export default function DashboardPage() {
     formData.append("jobUrl", jobUrl);
     formData.append("templateChoice", templateChoice);
     formData.append("cvFile", file);
+    formData.append("structuredCv", JSON.stringify(structuredCv));
 
     const res = await fetch("/api/cv/generate", {
       method: "POST",
@@ -117,7 +154,8 @@ export default function DashboardPage() {
     setUser((prev) => (prev ? { ...prev, credits: data.credits } : prev));
     setHistory((prev) => [data.application, ...prev]);
     setSelectedApplicationId(data.application.id);
-    setStructuredCv(data.preview?.structuredCv ?? null);
+    setStructuredCv(data.preview?.structuredCv ?? structuredCv);
+    setStep(3);
   }
 
   async function loadStructuredCv(id: string) {
@@ -133,6 +171,7 @@ export default function DashboardPage() {
 
     setSelectedApplicationId(id);
     setStructuredCv(data.structuredCv ?? null);
+    setStep(2);
   }
 
   async function saveStructuredCv() {
@@ -200,8 +239,18 @@ export default function DashboardPage() {
 
         <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
           <Card>
-            <h2 className="mb-4 text-lg font-semibold">Générer un CV optimisé</h2>
-            <form className="space-y-3" onSubmit={generateCv}>
+            <h2 className="mb-2 text-lg font-semibold">Parcours en 3 étapes</h2>
+            <p className="mb-4 text-xs text-slate-500 dark:text-slate-300">
+              1) Import CV + offre • 2) Formulaire hybride • 3) Génération finale
+            </p>
+
+            <div className="mb-4 flex gap-2 text-xs">
+              <Badge className={step >= 1 ? "" : "opacity-60"}>Étape 1</Badge>
+              <Badge className={step >= 2 ? "" : "opacity-60"}>Étape 2</Badge>
+              <Badge className={step >= 3 ? "" : "opacity-60"}>Étape 3</Badge>
+            </div>
+
+            <form className="space-y-3" onSubmit={prepareHybridStep}>
               <Input
                 placeholder="https://... lien de l'offre"
                 value={jobUrl}
@@ -231,8 +280,10 @@ export default function DashboardPage() {
 
               {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
-              <Button className="w-full" disabled={loading}>
-                {loading ? "Optimisation en cours..." : "Generate Optimized CV"}
+              <Button className="w-full" disabled={preparingStructure}>
+                {preparingStructure
+                  ? "Analyse et segmentation en cours..."
+                  : "Étape 1 → Lancer le formulaire hybride"}
               </Button>
             </form>
             <p className="mt-4 text-xs text-slate-500 dark:text-slate-300">
@@ -241,25 +292,19 @@ export default function DashboardPage() {
           </Card>
 
           <Card>
-            <h2 className="mb-3 text-lg font-semibold">Dernière optimisation</h2>
-            {preview ? (
-              <>
-                <p className="mb-3 text-xs text-slate-500">Aperçu brut généré</p>
-                <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900">
-                  {preview.optimizedResume}
-                </pre>
-                <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
-                  <p className="font-medium">Keywords intégrés:</p>
-                  <p>{preview.keywordsIntegrated.join(", ")}</p>
-                  <p className="mt-2 font-medium">Compétences manquantes (non ajoutées):</p>
-                  <p>{preview.missingSkills.join(", ") || "Aucune"}</p>
-                </div>
-              </>
-            ) : (
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Lance une génération pour afficher le résultat.
-              </p>
-            )}
+            <h2 className="mb-3 text-lg font-semibold">Étape 3 • Génération finale</h2>
+            <Button
+              className="w-full"
+              disabled={loading || !structuredCv || step < 2}
+              onClick={generateFinalCv}
+            >
+              {loading ? "Génération finale en cours..." : "Étape 3 → Générer le CV final"}
+            </Button>
+            <p className="mt-3 text-xs text-slate-500 dark:text-slate-300">
+              {step < 2
+                ? "Complète d'abord l'étape 1 puis confirme le formulaire hybride."
+                : "Une fois validé, le PDF est disponible dans l&apos;historique."}
+            </p>
           </Card>
         </div>
 
@@ -304,16 +349,19 @@ export default function DashboardPage() {
         </Card>
 
         <Card className="mt-5">
-          <h2 className="mb-4 text-lg font-semibold">Mode hybride (édition des catégories CV)</h2>
+          <h2 className="mb-4 text-lg font-semibold">Étape 2 • Formulaire hybride</h2>
 
           {!structuredCv ? (
             <p className="text-sm text-slate-600 dark:text-slate-300">
               {loadingStructure
                 ? "Chargement de la structure..."
-                : "Génère un CV ou clique sur “Hybride” dans l’historique pour éditer la structure."}
+                : "Commence par l'étape 1 ou charge une candidature via “Hybride” dans l'historique."}
             </p>
           ) : (
             <div className="space-y-3">
+              <p className="text-xs text-slate-500 dark:text-slate-300">
+                Source de segmentation: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
+              </p>
               <label className="text-xs font-medium">Professional Summary</label>
               <textarea
                 className="h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
@@ -440,9 +488,27 @@ export default function DashboardPage() {
               <Button className="w-full" onClick={saveStructuredCv}>
                 {savingStructure ? "Enregistrement..." : "Enregistrer la structure CV"}
               </Button>
+              <Button className="w-full" variant="secondary" onClick={() => setStep(3)}>
+                Valider l&apos;étape 2
+              </Button>
             </div>
           )}
         </Card>
+
+        {preview ? (
+          <Card className="mt-5">
+            <h2 className="mb-3 text-lg font-semibold">Dernière optimisation</h2>
+            <pre className="max-h-[300px] overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-800 dark:bg-slate-900">
+              {preview.optimizedResume}
+            </pre>
+            <div className="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              <p className="font-medium">Keywords intégrés:</p>
+              <p>{preview.keywordsIntegrated.join(", ")}</p>
+              <p className="mt-2 font-medium">Compétences manquantes (non ajoutées):</p>
+              <p>{preview.missingSkills.join(", ") || "Aucune"}</p>
+            </div>
+          </Card>
+        ) : null}
       </main>
     </div>
   );
