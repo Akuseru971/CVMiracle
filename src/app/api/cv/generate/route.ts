@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { CreditReason } from "@prisma/client";
 import { z } from "zod";
 import { getAuthUser } from "@/lib/auth";
-import { parseCvFile } from "@/lib/cv-parser";
+import { extractTextFromDocxBuffer, parseCvFile } from "@/lib/cv-parser";
+import { convertDocxToPdf, convertPdfToDocx } from "@/lib/cloudconvert";
 import { encryptText } from "@/lib/crypto";
+import { rewriteDocxWithReplacements } from "@/lib/docx-rewrite";
 import { extractJobOfferText } from "@/lib/job-parser";
-import { optimizeResumeWithAI } from "@/lib/openai";
+import { generateDocxReplacements, optimizeResumeWithAI } from "@/lib/openai";
 import { buildOriginalDesignEnhancedPdf } from "@/lib/pdf-enhance";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -68,14 +70,35 @@ export async function POST(request: Request) {
   let optimizedPayload = aiResult.optimizedResume;
 
   if (parsed.data.templateChoice === "Original Design Enhanced" && parsedCv.fileType === "pdf") {
-    const preservedPdf = await buildOriginalDesignEnhancedPdf(parsedCv.buffer, aiResult.optimizedResume);
-    optimizedPayload = JSON.stringify({
-      kind: "pdf-asset",
-      mimeType: "application/pdf",
-      fileName: `optimized_${parsedCv.originalName.replace(/\.pdf$/i, "")}.pdf`,
-      base64: preservedPdf.toString("base64"),
-      optimizedText: aiResult.optimizedResume,
-    });
+    try {
+      const convertedDocx = await convertPdfToDocx(parsedCv.buffer);
+      const convertedText = await extractTextFromDocxBuffer(convertedDocx);
+
+      const replacements = await generateDocxReplacements({
+        originalText: convertedText,
+        optimizedText: aiResult.optimizedResume,
+      });
+
+      const rewrittenDocx = await rewriteDocxWithReplacements(convertedDocx, replacements);
+      const rewrittenPdf = await convertDocxToPdf(rewrittenDocx);
+
+      optimizedPayload = JSON.stringify({
+        kind: "pdf-asset",
+        mimeType: "application/pdf",
+        fileName: `optimized_${parsedCv.originalName.replace(/\.pdf$/i, "")}.pdf`,
+        base64: rewrittenPdf.toString("base64"),
+        optimizedText: aiResult.optimizedResume,
+      });
+    } catch {
+      const preservedPdf = await buildOriginalDesignEnhancedPdf(parsedCv.buffer, aiResult.optimizedResume);
+      optimizedPayload = JSON.stringify({
+        kind: "pdf-asset",
+        mimeType: "application/pdf",
+        fileName: `optimized_${parsedCv.originalName.replace(/\.pdf$/i, "")}.pdf`,
+        base64: preservedPdf.toString("base64"),
+        optimizedText: aiResult.optimizedResume,
+      });
+    }
   }
 
   const created = await prisma.$transaction(async (tx) => {

@@ -11,6 +11,15 @@ const outputSchema = z.object({
 
 const model = process.env.OPENAI_MODEL ?? "gpt-4.1-mini";
 
+const replacementsSchema = z.object({
+  replacements: z.array(
+    z.object({
+      from: z.string().min(3),
+      to: z.string().min(3),
+    }),
+  ),
+});
+
 export async function optimizeResumeWithAI(args: {
   jobOfferText: string;
   cvText: string;
@@ -43,4 +52,44 @@ export async function optimizeResumeWithAI(args: {
   }
 
   return parsed.data;
+}
+
+export async function generateDocxReplacements(args: {
+  originalText: string;
+  optimizedText: string;
+}) {
+  if (!process.env.OPENAI_API_KEY) {
+    throw new Error("OPENAI_API_KEY manquant");
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const completion = await client.chat.completions.create({
+    model,
+    response_format: { type: "json_object" },
+    temperature: 0.1,
+    messages: [
+      {
+        role: "system",
+        content:
+          "Generate exact text replacement pairs from original to optimized CV wording. Never invent source snippets. Return JSON only: { replacements: [{ from, to }] }",
+      },
+      {
+        role: "user",
+        content: `Original CV text:\n${args.originalText}\n\nOptimized CV text:\n${args.optimizedText}\n\nReturn up to 120 high-value replacements.`,
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) {
+    return [];
+  }
+
+  const parsed = replacementsSchema.safeParse(JSON.parse(raw));
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.replacements;
 }

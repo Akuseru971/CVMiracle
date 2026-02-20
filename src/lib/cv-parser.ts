@@ -46,6 +46,15 @@ export async function parseCvFile(file: File): Promise<ParsedCv> {
   throw new Error("Format non supporté. Utilisez PDF ou DOCX.");
 }
 
+export async function extractTextFromDocxBuffer(buffer: Buffer) {
+  const parsed = await mammoth.extractRawText({ buffer });
+  const text = parsed.value?.trim();
+  if (!text) {
+    throw new Error("DOCX illisible");
+  }
+  return text.slice(0, 20000);
+}
+
 export async function extractCvText(file: File) {
   const parsed = await parseCvFile(file);
   return parsed.text;
