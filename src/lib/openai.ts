@@ -94,6 +94,15 @@ const hybridCvFormSchema = z.object({
   interests: z.array(z.string()).optional().default([]),
 });
 
+const logicalStructureSchema = z.object({
+  personalInformation: z.array(z.string()).optional().default([]),
+  workExperienceBlocks: z.array(z.array(z.string())).optional().default([]),
+  educationBlocks: z.array(z.array(z.string())).optional().default([]),
+  skills: z.array(z.string()).optional().default([]),
+  languages: z.array(z.string()).optional().default([]),
+  otherSections: z.array(z.array(z.string())).optional().default([]),
+});
+
 export async function optimizeResumeWithAI(args: {
   jobOfferText: string;
   cvText: string;
@@ -218,77 +227,89 @@ export async function extractHybridCvFormWithAI(args: {
 
   const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-  const completion = await client.chat.completions.create({
+  let logicalStructure: z.infer<typeof logicalStructureSchema> | null = null;
+
+  try {
+    const structureCompletion = await client.chat.completions.create({
+      model,
+      response_format: { type: "json_object" },
+      temperature: 0,
+      messages: [
+        {
+          role: "system",
+          content: `You are a document structure analyst.
+
+First, reconstruct the logical structure of the following CV text.
+
+Identify:
+- Personal information
+- Work experience blocks
+- Education blocks
+- Skills
+- Languages
+- Other sections
+
+Do not extract yet.
+Only group the content logically.`,
+        },
+        {
+          role: "user",
+          content: `CV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape:\n{\n  \"personalInformation\": [],\n  \"workExperienceBlocks\": [[]],\n  \"educationBlocks\": [[]],\n  \"skills\": [],\n  \"languages\": [],\n  \"otherSections\": [[]]\n}`,
+        },
+      ],
+    });
+
+    const rawStructure = structureCompletion.choices[0]?.message?.content;
+    if (rawStructure) {
+      const parsedStructure = logicalStructureSchema.safeParse(JSON.parse(rawStructure));
+      if (parsedStructure.success) {
+        logicalStructure = parsedStructure.data;
+      }
+    }
+  } catch {
+    logicalStructure = null;
+  }
+
+  const extractionCompletion = await client.chat.completions.create({
     model,
     response_format: { type: "json_object" },
     temperature: 0,
     messages: [
       {
         role: "system",
-        content: `You are a professional CV parsing engine.
+        content: `Now convert the structured content into strict JSON.
 
-Your task is to extract structured data from a raw resume text.
+Follow this schema strictly:
+{
+  "personalInfo": {...},
+  "summary": "",
+  "experience": [],
+  "education": [],
+  "hardSkills": [],
+  "softSkills": [],
+  "languages": [],
+  "certifications": [],
+  "volunteering": [],
+  "interests": []
+}
 
-You must analyze the document semantically, not line by line.
-
-Follow these strict rules:
-
-Reconstruct logical sections before extraction.
-
-Identify and separate:
-
-Personal information
-
-Professional experience
-
-Education
-
-Hard skills
-
-Soft skills
-
-Languages
-
-Certifications
-
-Volunteering
-
-Interests
-
-Normalize date formats.
-
-Detect current roles automatically.
-
-Extract location separately from company.
-
-Separate job title and company.
-
-Separate hard skills from soft skills.
-
-Do not invent missing data.
-
-If unsure, leave field empty.
-
-Order professional experiences from most recent to oldest.
-
-Return structured JSON only.
-
-You must think step-by-step before responding.
-
-Do not output explanations.
-
-Return only JSON.
+Normalize dates.
+Sort experience from most recent to oldest.
+Separate hard and soft skills.
+Detect current roles.
+Do not invent information.
+Return JSON only.
 
 Before returning the JSON, internally reason about the structure of the document and verify consistency of dates and roles.`,
       },
       {
         role: "user",
-        content: `Raw resume text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional aid):\n${args.jobOfferText.slice(0, 7000)}\n\nSchema:\n{\n  \"personalInfo\": {\n    \"fullName\": \"\",\n    \"city\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"linkedin\": \"\"\n  },\n  \"summary\": \"\",\n  \"experience\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": []\n    }\n  ],\n  \"education\": [\n    {\n      \"degree\": \"\",\n      \"institution\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\"\n    }\n  ],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}\n\nReturn JSON only.`,
+        content: `Structured content from step 1:\n${JSON.stringify(logicalStructure ?? {})}\n\nRaw resume text (fallback context):\n${args.cvText.slice(0, 18000)}\n\nJob offer context (optional):\n${args.jobOfferText.slice(0, 7000)}\n\nTarget schema:\n{\n  \"personalInfo\": {\n    \"fullName\": \"\",\n    \"city\": \"\",\n    \"phone\": \"\",\n    \"email\": \"\",\n    \"linkedin\": \"\"\n  },\n  \"summary\": \"\",\n  \"experience\": [\n    {\n      \"jobTitle\": \"\",\n      \"company\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\",\n      \"isCurrent\": false,\n      \"achievements\": []\n    }\n  ],\n  \"education\": [\n    {\n      \"degree\": \"\",\n      \"institution\": \"\",\n      \"location\": \"\",\n      \"startDate\": \"\",\n      \"endDate\": \"\"\n    }\n  ],\n  \"hardSkills\": [],\n  \"softSkills\": [],\n  \"languages\": [],\n  \"certifications\": [],\n  \"volunteering\": [],\n  \"interests\": []\n}\n\nReturn JSON only.`,
       },
     ],
   });
 
-  const raw = completion.choices[0]?.message?.content;
+  const raw = extractionCompletion.choices[0]?.message?.content;
   if (!raw) {
     return null;
   }
