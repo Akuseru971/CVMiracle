@@ -30,6 +30,7 @@ const structuredCvSchema = z.object({
         title: z.string().optional().default(""),
         company: z.string().optional().default(""),
         date: z.string().optional().default(""),
+        location: z.string().optional().default(""),
         bullets: z.array(z.string()).optional().default([]),
       }),
     )
@@ -137,7 +138,7 @@ export async function extractStructuredCvWithAI(args: {
       },
       {
         role: "user",
-        content: `Job offer context:\n${args.jobOfferText.slice(0, 8000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape: { summary, experiences:[{title,company,date,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
+        content: `Job offer context:\n${args.jobOfferText.slice(0, 8000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape: { summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
       },
     ],
   });

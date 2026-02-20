@@ -2,6 +2,7 @@ export type CvExperience = {
   title: string;
   company: string;
   date: string;
+  location?: string;
   bullets: string[];
 };
 
@@ -86,9 +87,12 @@ function parseExperiences(rawLines: string[]) {
       .filter(Boolean);
 
     if (parts.length >= 2) {
+      const company = parts[1] ?? "";
+      const location = parts.length >= 3 ? parts.slice(2).join(" — ") : "";
       return {
         title: parts[0],
-        company: parts.slice(1).join(" — "),
+        company,
+        location,
         date,
       };
     }
@@ -96,6 +100,7 @@ function parseExperiences(rawLines: string[]) {
     return {
       title: withoutDate.replace(/[|·•-]\s*$/, "").trim(),
       company: "",
+      location: "",
       date,
     };
   };
@@ -115,6 +120,7 @@ function parseExperiences(rawLines: string[]) {
         title: parsed.title,
         company: parsed.company,
         date: parsed.date,
+        location: parsed.location,
         bullets: [],
       };
       continue;
@@ -125,6 +131,7 @@ function parseExperiences(rawLines: string[]) {
         title: line.replace(/^[-•▪◦]\s*/, ""),
         company: "",
         date: "",
+        location: "",
         bullets: [],
       };
       continue;
@@ -196,6 +203,7 @@ export function sanitizeStructuredCv(input: StructuredCv): StructuredCv {
         title: entry.title?.trim() ?? "",
         company: entry.company?.trim() ?? "",
         date: entry.date?.trim() ?? "",
+        location: entry.location?.trim() ?? "",
         bullets: (entry.bullets ?? []).map((bullet) => bullet.trim()).filter(Boolean).slice(0, 4),
       }))
       .filter((entry) => entry.title.length > 0),
@@ -211,7 +219,7 @@ export function structuredCvToText(input: StructuredCv) {
 
   const experienceText = safe.experiences
     .map((entry) => {
-      const headerParts = [entry.title, entry.company, entry.date].filter(Boolean);
+      const headerParts = [entry.title, entry.company, entry.location, entry.date].filter(Boolean);
       const header = headerParts.join(" | ");
       const bullets = entry.bullets.map((bullet) => `- ${bullet}`).join("\n");
       return `${header}${bullets ? `\n${bullets}` : ""}`;
@@ -228,4 +236,24 @@ export function structuredCvToText(input: StructuredCv) {
   ].filter(Boolean);
 
   return sections.join("\n\n");
+}
+
+export function getHybridValidationIssues(input: StructuredCv) {
+  const safe = sanitizeStructuredCv(input);
+  const issues: string[] = [];
+
+  if (!safe.experiences.length) {
+    issues.push("Ajoute au moins une expérience.");
+  }
+
+  safe.experiences.forEach((experience, index) => {
+    const rank = index + 1;
+    if (!experience.company.trim()) issues.push(`Expérience ${rank}: Entreprise manquante.`);
+    if (!experience.title.trim()) issues.push(`Expérience ${rank}: Nom du poste manquant.`);
+    if (!experience.date.trim()) issues.push(`Expérience ${rank}: Dates manquantes.`);
+    if (!(experience.location ?? "").trim()) issues.push(`Expérience ${rank}: Lieu manquant.`);
+    if (!experience.bullets.length) issues.push(`Expérience ${rank}: Missions manquantes.`);
+  });
+
+  return issues;
 }

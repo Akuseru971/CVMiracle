@@ -323,7 +323,7 @@ function extractBlocks(optimizedResumeText: string, structuredCv?: StructuredCv)
         summaryLines: structuredCv.summary ? [structuredCv.summary] : [],
         experience: (structuredCv.experiences ?? []).map((entry) => ({
           title: entry.title,
-          company: entry.company,
+          company: [entry.company, entry.location].filter(Boolean).join(" — "),
           date: entry.date,
           bullets: (entry.bullets ?? []).slice(0, 4),
         })),

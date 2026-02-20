@@ -9,6 +9,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
 import {
+  getHybridValidationIssues,
   parseStructuredCvFromText,
   sanitizeStructuredCv,
   structuredCvToText,
@@ -61,14 +62,30 @@ export async function POST(request: Request) {
   let cvText = parsedCv.text;
   let confirmedStructuredCv: StructuredCv | null = null;
 
-  if (typeof rawStructuredCv === "string" && rawStructuredCv.trim()) {
-    try {
-      const parsedStructured = sanitizeStructuredCv(JSON.parse(rawStructuredCv) as StructuredCv);
-      confirmedStructuredCv = parsedStructured;
-      cvText = structuredCvToText(parsedStructured);
-    } catch {
-      confirmedStructuredCv = null;
+  if (typeof rawStructuredCv !== "string" || !rawStructuredCv.trim()) {
+    return NextResponse.json(
+      { error: "Validation du formulaire hybride requise avant génération finale." },
+      { status: 400 },
+    );
+  }
+
+  try {
+    const parsedStructured = sanitizeStructuredCv(JSON.parse(rawStructuredCv) as StructuredCv);
+    const issues = getHybridValidationIssues(parsedStructured);
+    if (issues.length) {
+      return NextResponse.json(
+        { error: `Formulaire hybride incomplet: ${issues[0]}` },
+        { status: 400 },
+      );
     }
+
+    confirmedStructuredCv = parsedStructured;
+    cvText = structuredCvToText(parsedStructured);
+  } catch {
+    return NextResponse.json(
+      { error: "Formulaire hybride invalide. Merci de valider l'étape 2." },
+      { status: 400 },
+    );
   }
 
   const aiResult = await optimizeResumeWithAI({
