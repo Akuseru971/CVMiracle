@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { decryptText } from "@/lib/crypto";
+import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
 
@@ -72,16 +73,10 @@ export async function GET(
     });
   } catch {
     if (hasLegacyPdfAsset) {
-      return NextResponse.json(
-        { error: "Ancien format détecté. Relance une génération pour appliquer le template premium." },
-        { status: 409 },
-      );
+      pdf = await buildResumePdfBuffer(application.title, resumeTextForTemplate, application.matchScore);
+    } else {
+      pdf = await buildResumePdfBuffer(application.title, resumeTextForTemplate, application.matchScore);
     }
-
-    return NextResponse.json(
-      { error: "Rendu PDF premium indisponible temporairement" },
-      { status: 503 },
-    );
   }
 
   const headers = new Headers();
