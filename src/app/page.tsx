@@ -10,11 +10,14 @@ import {
   BriefcaseBusiness,
   FileText,
   Download,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { AnimatedBackground } from "@/components/animated-background";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TEMPLATE_CHOICES } from "@/lib/template-options";
 
 type AuthMode = "register" | "login";
 
@@ -31,14 +34,14 @@ type JobPreview = {
   sourceUrl: string;
 };
 
-const templateChoices = ["Original Design Enhanced", "Modern Executive", "Minimal ATS"] as const;
+const templateChoices = TEMPLATE_CHOICES;
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [jobUrl, setJobUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [templateChoice, setTemplateChoice] = useState<(typeof templateChoices)[number]>(
-    "Modern Executive",
+    "Executive Classic",
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,6 +54,7 @@ export default function Home() {
     id: string;
     title: string;
   } | null>(null);
+  const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
   const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
@@ -163,7 +167,18 @@ export default function Home() {
       id: data.application.id,
       title: data.application.title,
     });
+    setActivePreviewIndex(templateChoices.indexOf(templateChoice));
   }
+
+  const activePreviewTemplate = templateChoices[activePreviewIndex] ?? templateChoices[0];
+
+  const buildPdfUrl = (choice: (typeof templateChoices)[number], inline = false) => {
+    if (!generatedApplication) return "#";
+    const params = new URLSearchParams();
+    if (inline) params.set("inline", "1");
+    params.set("templateChoice", choice);
+    return `/api/cv/${generatedApplication.id}/pdf?${params.toString()}`;
+  };
 
   async function onGenerate(e: React.FormEvent) {
     e.preventDefault();
@@ -359,20 +374,86 @@ export default function Home() {
                       <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                         CV refabriqué prêt
                       </p>
-                      <a href={`/api/cv/${generatedApplication.id}/pdf`}>
+                      <a href={buildPdfUrl(activePreviewTemplate)}>
                         <Button variant="secondary" className="h-9 px-3 text-xs">
                           <Download size={14} /> Télécharger
                         </Button>
                       </a>
                     </div>
-                    <p className="mb-2 truncate text-xs text-slate-600 dark:text-slate-300">
-                      {generatedApplication.title}
-                    </p>
-                    <iframe
-                      src={`/api/cv/${generatedApplication.id}/pdf?inline=1`}
-                      title="Aperçu CV refabriqué"
-                      className="h-56 w-full rounded-lg border border-emerald-200 bg-white dark:border-emerald-900 dark:bg-slate-900"
-                    />
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="truncate text-xs text-slate-600 dark:text-slate-300">
+                        {generatedApplication.title}
+                      </p>
+                      <p className="text-xs font-medium text-slate-700 dark:text-slate-200">
+                        {activePreviewTemplate}
+                      </p>
+                    </div>
+
+                    <div className="relative mb-3" style={{ perspective: "1200px" }}>
+                      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-transparent to-black/5 dark:to-white/5" />
+                      <iframe
+                        src={buildPdfUrl(activePreviewTemplate, true)}
+                        title="Aperçu CV refabriqué"
+                        className="relative z-10 h-[460px] w-full rounded-xl border border-emerald-200 bg-white shadow-xl dark:border-emerald-900 dark:bg-slate-900"
+                      />
+                    </div>
+
+                    <div className="mb-2 flex items-center justify-center gap-2">
+                      <Button
+                        variant="secondary"
+                        className="h-9 w-9 p-0"
+                        onClick={() =>
+                          setActivePreviewIndex((prev) =>
+                            prev === 0 ? templateChoices.length - 1 : prev - 1,
+                          )
+                        }
+                      >
+                        <ChevronLeft size={16} />
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="h-9 w-9 p-0"
+                        onClick={() =>
+                          setActivePreviewIndex((prev) =>
+                            prev === templateChoices.length - 1 ? 0 : prev + 1,
+                          )
+                        }
+                      >
+                        <ChevronRight size={16} />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-5 gap-2" style={{ perspective: "1000px" }}>
+                      {templateChoices.map((choice, index) => {
+                        const offset = index - activePreviewIndex;
+                        const normalized =
+                          Math.abs(offset) > Math.floor(templateChoices.length / 2)
+                            ? Math.sign(offset) * (templateChoices.length - Math.abs(offset))
+                            : offset;
+                        const rotateY = normalized * 16;
+                        const translateZ = Math.max(0, 24 - Math.abs(normalized) * 10);
+                        const scale = Math.max(0.86, 1 - Math.abs(normalized) * 0.06);
+
+                        return (
+                          <button
+                            key={choice}
+                            type="button"
+                            onClick={() => setActivePreviewIndex(index)}
+                            className={`rounded-lg border px-2 py-2 text-[10px] font-medium transition ${
+                              index === activePreviewIndex
+                                ? "border-emerald-400 bg-emerald-100 text-emerald-800 dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                : "border-slate-200 bg-white text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"
+                            }`}
+                            style={{
+                              transform: `translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                              transformStyle: "preserve-3d",
+                            }}
+                          >
+                            {choice}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
                 ) : null}
 

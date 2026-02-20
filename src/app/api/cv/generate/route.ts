@@ -7,12 +7,13 @@ import { extractJobOfferText } from "@/lib/job-parser";
 import { optimizeResumeWithAI } from "@/lib/openai";
 import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { TEMPLATE_CHOICES } from "@/lib/template-options";
 
 export const runtime = "nodejs";
 
 const schema = z.object({
   jobUrl: z.url(),
-  templateChoice: z.enum(["Original Design Enhanced", "Modern Executive", "Minimal ATS"]),
+  templateChoice: z.enum(TEMPLATE_CHOICES),
 });
 
 function inferTitle(jobText: string) {

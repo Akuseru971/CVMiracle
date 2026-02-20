@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { z } from "zod";
 import { buildUserPrompt, SYSTEM_PROMPT } from "@/lib/ai-prompt";
+import type { TemplateChoice } from "@/lib/template-options";
 
 const outputSchema = z.object({
   optimizedResume: z.string().min(50),
@@ -23,7 +24,7 @@ const replacementsSchema = z.object({
 export async function optimizeResumeWithAI(args: {
   jobOfferText: string;
   cvText: string;
-  templateChoice: "Original Design Enhanced" | "Modern Executive" | "Minimal ATS";
+  templateChoice: TemplateChoice;
 }) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY manquant");

@@ -1,3 +1,5 @@
+import type { TemplateChoice } from "@/lib/template-options";
+
 export const SYSTEM_PROMPT = `You are an elite executive resume strategist and ATS optimization expert.
 
 Your role is to rewrite and optimize resumes to match job offers while strictly respecting factual accuracy.
@@ -32,7 +34,7 @@ Return valid JSON only with this exact shape:
 export function buildUserPrompt(args: {
   jobOfferText: string;
   cvText: string;
-  templateChoice: "Original Design Enhanced" | "Modern Executive" | "Minimal ATS";
+  templateChoice: TemplateChoice;
 }) {
   return `Here is the full job offer content:\n${args.jobOfferText}\n\nHere is the candidate original CV content:\n${args.cvText}\n\nSelected template:\n${args.templateChoice}\n\nObjective: rewrite and optimize the resume with maximum truthful alignment.
 
@@ -43,9 +45,11 @@ Methodology:
 4) Ensure ATS-friendly structure.
 
 Template behavior:
-- Original Design Enhanced: preserve order and style, only improve wording.
-- Modern Executive: executive summary + reorganized impact-oriented flow.
-- Minimal ATS: ultra clean, no columns, no graphics, plain structure.
+- Executive Classic: classic one-column premium layout, sober and dense.
+- Modern Sidebar: two-column modern layout with left accent sidebar.
+- Minimal ATS: ultra clean, monochrome, ATS-first structure.
+- Executive Grey: executive top panel with premium cabinet style.
+- Modern Accent: modern accent line with clean hierarchy.
 
 Output requirements:
 - Optimized resume in clean structure.

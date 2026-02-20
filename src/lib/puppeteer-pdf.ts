@@ -1,6 +1,5 @@
 import { renderIntelligentPdf } from "@/lib/pdf-renderer";
-
-type TemplateChoice = "Original Design Enhanced" | "Modern Executive" | "Minimal ATS";
+import type { TemplateChoice } from "@/lib/template-options";
 
 type RenderArgs = {
   title: string;

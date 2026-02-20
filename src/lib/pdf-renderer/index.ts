@@ -1,8 +1,7 @@
 import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 import { buildIntelligentResumeHtml } from "@/lib/template-engine";
-
-type TemplateChoice = "Original Design Enhanced" | "Modern Executive" | "Minimal ATS";
+import type { TemplateChoice } from "@/lib/template-options";
 
 type RenderArgs = {
   title: string;

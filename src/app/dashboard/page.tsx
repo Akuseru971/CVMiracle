@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { TEMPLATE_CHOICES } from "@/lib/template-options";
 
 type User = {
   id: string;
@@ -27,14 +28,14 @@ type Application = {
   createdAt: string;
 };
 
-const templateChoices = ["Original Design Enhanced", "Modern Executive", "Minimal ATS"] as const;
+const templateChoices = TEMPLATE_CHOICES;
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [jobUrl, setJobUrl] = useState("");
   const [templateChoice, setTemplateChoice] = useState<(typeof templateChoices)[number]>(
-    "Modern Executive",
+    "Executive Classic",
   );
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);

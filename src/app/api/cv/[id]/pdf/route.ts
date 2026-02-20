@@ -4,6 +4,7 @@ import { decryptText } from "@/lib/crypto";
 import { buildResumePdfBuffer } from "@/lib/pdf";
 import { prisma } from "@/lib/prisma";
 import { renderResumePdfWithPuppeteer } from "@/lib/puppeteer-pdf";
+import { normalizeTemplateChoice } from "@/lib/template-options";
 
 export const runtime = "nodejs";
 
@@ -20,6 +21,7 @@ export async function GET(
 
   const { searchParams } = new URL(request.url);
   const inline = searchParams.get("inline") === "1";
+  const forcedTemplateChoice = searchParams.get("templateChoice");
 
   const application = await prisma.jobApplication.findFirst({
     where: { id, userId: user.id },
@@ -67,10 +69,7 @@ export async function GET(
       title: application.title,
       originalResumeText: originalCvText,
       optimizedResumeText: resumeTextForTemplate,
-      templateChoice: application.templateChoice as
-        | "Original Design Enhanced"
-        | "Modern Executive"
-        | "Minimal ATS",
+      templateChoice: normalizeTemplateChoice(forcedTemplateChoice ?? application.templateChoice),
       matchScore: application.matchScore,
       keywords: Array.isArray(application.keywords) ? (application.keywords as string[]) : [],
     });
