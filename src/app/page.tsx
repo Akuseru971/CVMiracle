@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { TEMPLATE_CHOICES } from "@/lib/template-options";
-import type { StructuredCv } from "@/lib/cv-structure";
+import { getHybridValidationIssues, type StructuredCv } from "@/lib/cv-structure";
 
 type AuthMode = "register" | "login";
 
@@ -36,6 +36,25 @@ type JobPreview = {
 };
 
 const templateChoices = TEMPLATE_CHOICES;
+
+function createEmptyStructuredCv(): StructuredCv {
+  return {
+    summary: "",
+    experiences: [
+      {
+        title: "",
+        company: "",
+        date: "",
+        location: "",
+        bullets: [],
+      },
+    ],
+    education: [],
+    skills: [],
+    languages: [],
+    additional: [],
+  };
+}
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -58,6 +77,9 @@ export default function Home() {
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [structuredCv, setStructuredCv] = useState<StructuredCv | null>(null);
   const [savingStructure, setSavingStructure] = useState(false);
+  const [hybridModalOpen, setHybridModalOpen] = useState(false);
+  const [structureSource, setStructureSource] = useState<"hybrid" | "heuristic" | null>(null);
+  const [preparingStructure, setPreparingStructure] = useState(false);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
   const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
@@ -131,7 +153,7 @@ export default function Home() {
     };
   }, [file]);
 
-  async function callGenerate() {
+  async function callGenerate(validatedStructuredCv: StructuredCv) {
     if (!file) {
       setError("Ajoute ton CV (PDF ou DOCX) avant la génération.");
       return;
@@ -144,6 +166,7 @@ export default function Home() {
     formData.append("jobUrl", jobUrl);
     formData.append("templateChoice", templateChoice);
     formData.append("cvFile", file);
+    formData.append("structuredCv", JSON.stringify(validatedStructuredCv));
 
     const res = await fetch("/api/cv/generate", {
       method: "POST",
@@ -171,7 +194,65 @@ export default function Home() {
       title: data.application.title,
     });
     setActivePreviewIndex(templateChoices.indexOf(templateChoice));
-    setStructuredCv(data.preview?.structuredCv ?? null);
+    setStructuredCv(data.preview?.structuredCv ?? validatedStructuredCv);
+  }
+
+  async function openHybridPopup() {
+    if (!file) {
+      setError("Ajoute ton CV (PDF ou DOCX) avant la génération.");
+      return;
+    }
+
+    setPreparingStructure(true);
+    setError("");
+
+    const formData = new FormData();
+    formData.append("jobUrl", jobUrl);
+    formData.append("cvFile", file);
+
+    try {
+      const res = await fetch("/api/cv/structure-preview", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      setPreparingStructure(false);
+
+      if (!res.ok) {
+        setStructuredCv(createEmptyStructuredCv());
+        setStructureSource(null);
+        setHybridModalOpen(true);
+        setError(data.error ?? "Extraction incomplète: complète les expériences dans la pop-up.");
+        return;
+      }
+
+      const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
+      setStructuredCv(
+        nextStructured.experiences.length
+          ? nextStructured
+          : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
+      );
+      setStructureSource(data.source ?? null);
+      setHybridModalOpen(true);
+    } catch {
+      setPreparingStructure(false);
+      setStructuredCv(createEmptyStructuredCv());
+      setStructureSource(null);
+      setHybridModalOpen(true);
+      setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
+    }
+  }
+
+  async function validateHybridAndGenerate() {
+    if (!structuredCv) return;
+    const issues = getHybridValidationIssues(structuredCv);
+    if (issues.length) {
+      setError(`Règle d'or non respectée: ${issues[0]}`);
+      return;
+    }
+
+    setHybridModalOpen(false);
+    await callGenerate(structuredCv);
   }
 
   async function saveStructuredCv() {
@@ -212,7 +293,7 @@ export default function Home() {
       return;
     }
 
-    await callGenerate();
+    await openHybridPopup();
   }
 
   async function submitAuth(e: React.FormEvent) {
@@ -243,7 +324,7 @@ export default function Home() {
 
     if (pendingGenerate) {
       setPendingGenerate(false);
-      await callGenerate();
+      await openHybridPopup();
     }
   }
 
@@ -372,8 +453,12 @@ export default function Home() {
 
               {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
-              <Button className="w-full" disabled={loading} type="submit">
-                {loading ? "Optimisation en cours..." : "Generate Optimized CV"}
+              <Button className="w-full" disabled={loading || preparingStructure} type="submit">
+                {loading
+                  ? "Optimisation en cours..."
+                  : preparingStructure
+                    ? "Préparation du formulaire hybride..."
+                    : "Generate Optimized CV"}
               </Button>
             </form>
             <p className="mt-3 text-xs text-slate-500">
@@ -683,6 +768,168 @@ export default function Home() {
               </button>
             </Card>
           </section>
+        ) : null}
+
+        {hybridModalOpen && structuredCv ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="max-h-[90vh] w-full max-w-4xl overflow-auto rounded-2xl bg-white p-5 text-slate-900 dark:bg-slate-950 dark:text-white">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Vérification des expériences professionnelles</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
+                    Complète chaque expérience: Entreprise, Nom du poste, Dates, Lieu, Missions.
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
+                    Source: {structureSource === "hybrid" ? "Hybride IA + heuristique" : "Heuristique"}
+                  </p>
+                </div>
+                <Button variant="secondary" onClick={() => setHybridModalOpen(false)}>
+                  Fermer
+                </Button>
+              </div>
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="mb-3"
+                onClick={() =>
+                  setStructuredCv((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          experiences: [
+                            ...prev.experiences,
+                            { title: "", company: "", date: "", location: "", bullets: [] },
+                          ],
+                        }
+                      : prev,
+                  )
+                }
+              >
+                Ajouter une expérience
+              </Button>
+
+              <div className="space-y-3">
+                {structuredCv.experiences.map((experience, index) => (
+                  <div
+                    key={`${experience.title}-${index}`}
+                    className="rounded-lg border border-slate-200 p-3 dark:border-slate-700"
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-xs font-semibold">Expérience {index + 1}</p>
+                      {structuredCv.experiences.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            setStructuredCv((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    experiences: prev.experiences.filter((_, i) => i !== index),
+                                  }
+                                : prev,
+                            )
+                          }
+                        >
+                          Supprimer
+                        </Button>
+                      ) : null}
+                    </div>
+
+                    <label className="text-xs font-medium">Nom du poste</label>
+                    <Input
+                      placeholder="Nom du poste"
+                      value={experience.title}
+                      onChange={(e) =>
+                        setStructuredCv((prev) => {
+                          if (!prev) return prev;
+                          const experiences = [...prev.experiences];
+                          experiences[index] = { ...experiences[index], title: e.target.value };
+                          return { ...prev, experiences };
+                        })
+                      }
+                    />
+
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      <div>
+                        <label className="text-xs font-medium">Entreprise</label>
+                        <Input
+                          placeholder="Entreprise"
+                          value={experience.company}
+                          onChange={(e) =>
+                            setStructuredCv((prev) => {
+                              if (!prev) return prev;
+                              const experiences = [...prev.experiences];
+                              experiences[index] = { ...experiences[index], company: e.target.value };
+                              return { ...prev, experiences };
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium">Dates</label>
+                        <Input
+                          placeholder="Dates"
+                          value={experience.date}
+                          onChange={(e) =>
+                            setStructuredCv((prev) => {
+                              if (!prev) return prev;
+                              const experiences = [...prev.experiences];
+                              experiences[index] = { ...experiences[index], date: e.target.value };
+                              return { ...prev, experiences };
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-2">
+                      <label className="text-xs font-medium">Lieu</label>
+                      <Input
+                        placeholder="Lieu"
+                        value={experience.location ?? ""}
+                        onChange={(e) =>
+                          setStructuredCv((prev) => {
+                            if (!prev) return prev;
+                            const experiences = [...prev.experiences];
+                            experiences[index] = { ...experiences[index], location: e.target.value };
+                            return { ...prev, experiences };
+                          })
+                        }
+                      />
+                    </div>
+
+                    <label className="mt-2 block text-xs font-medium">Missions</label>
+                    <textarea
+                      className="mt-2 h-20 w-full rounded-lg border border-slate-200 bg-white p-2 text-xs dark:border-slate-700 dark:bg-slate-900"
+                      placeholder="Missions (1 par ligne, max 4)"
+                      value={experience.bullets.join("\n")}
+                      onChange={(e) =>
+                        setStructuredCv((prev) => {
+                          if (!prev) return prev;
+                          const experiences = [...prev.experiences];
+                          experiences[index] = {
+                            ...experiences[index],
+                            bullets: e.target.value
+                              .split("\n")
+                              .map((line) => line.trim())
+                              .filter(Boolean)
+                              .slice(0, 4),
+                          };
+                          return { ...prev, experiences };
+                        })
+                      }
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <Button className="mt-4 w-full" disabled={loading} onClick={validateHybridAndGenerate}>
+                {loading ? "Génération en cours..." : "Valider puis générer"}
+              </Button>
+            </div>
+          </div>
         ) : null}
 
         <section className="grid gap-4 md:grid-cols-3">
