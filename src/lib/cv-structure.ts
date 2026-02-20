@@ -76,10 +76,23 @@ function parseSectionsRaw(text: string) {
 function parseExperiences(rawLines: string[]) {
   const entries: CvExperience[] = [];
   let current: CvExperience | null = null;
-  const dateRegex = /(\b(?:19|20)\d{2}\b\s*[-–—]\s*(?:\b(?:19|20)\d{2}\b|Present|Current|Aujourd'hui|Now))/i;
+  let pendingDate = "";
 
-  const parseHeader = (value: string) => {
-    const date = value.match(dateRegex)?.[0] ?? "";
+  const dateRangeRegex = /(\b(?:19|20)\d{2}\b\s*[-–—]\s*(?:\b(?:19|20)\d{2}\b|Present|Current|Aujourd'hui|Now))/i;
+  const dateLikeRegex = /((?:\b(?:19|20)\d{2}\b)|(?:\b\d{1,2}[/.\-]\d{1,2}[/.\-](?:19|20)\d{2}\b)|(?:\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|janv|févr|mars|avr|mai|juin|juil|août|sept|oct|nov|déc)\w*\b)|(?:present|current|now|aujourd'hui))/i;
+
+  const isBulletLine = (value: string) => /^[•▪◦-]\s*/.test(value);
+  const looksDateLike = (value: string) => /\d/.test(value) && dateLikeRegex.test(value);
+  const extractDateText = (value: string) => value.match(dateRangeRegex)?.[0] ?? value.match(dateLikeRegex)?.[0] ?? "";
+  const looksCompanyLine = (value: string) => {
+    if (!value || /\d/.test(value)) return false;
+    if (value.length > 90) return false;
+    if (/^[-•▪◦]/.test(value)) return false;
+    return /\s[—–-]\s/.test(value) || /\b(?:inc|llc|sas|sa|gmbh|ltd|group|studio|company|corp|technologies)\b/i.test(value) || value.split(" ").length <= 8;
+  };
+
+  const parseHeader = (value: string, fallbackDate = "") => {
+    const date = extractDateText(value) || fallbackDate;
     const withoutDate = date ? value.replace(date, "").trim() : value;
     const parts = withoutDate
       .split(/\s+[|]\s+|\s+[—–]\s+|\s+-\s+/)
@@ -109,13 +122,29 @@ function parseExperiences(rawLines: string[]) {
     const line = rawLine.trim();
     if (!line) continue;
 
-    const isBullet = /^[•▪◦-]\s*/.test(rawLine);
-    const hasDate = dateRegex.test(line);
-    const looksHeader = hasDate || /\||\s[—–-]\s/.test(line) || line.length < 85;
+    const isBullet = isBulletLine(rawLine);
+    const hasDate = looksDateLike(line);
+    const looksHeader = /\||\s[—–-]\s/.test(line) || line.length < 85;
+
+    if (!isBullet && hasDate && !current) {
+      pendingDate = extractDateText(line) || line;
+      continue;
+    }
+
+    if (!isBullet && hasDate && current && !current.date) {
+      current.date = extractDateText(line) || line;
+      continue;
+    }
+
+    if (!isBullet && current && !current.company && !hasDate && looksCompanyLine(line)) {
+      current.company = line;
+      continue;
+    }
 
     if (!isBullet && looksHeader) {
       if (current) entries.push(current);
-      const parsed = parseHeader(line);
+      const parsed = parseHeader(line, pendingDate);
+      pendingDate = "";
       current = {
         title: parsed.title,
         company: parsed.company,
@@ -127,6 +156,10 @@ function parseExperiences(rawLines: string[]) {
     }
 
     if (!current) {
+      if (hasDate) {
+        pendingDate = extractDateText(line) || line;
+        continue;
+      }
       current = {
         title: line.replace(/^[-•▪◦]\s*/, ""),
         company: "",
@@ -138,7 +171,7 @@ function parseExperiences(rawLines: string[]) {
     }
 
     const cleaned = line.replace(/^[-•▪◦]\s*/, "").trim();
-    if (cleaned && cleaned !== current.title && cleaned !== current.company && !dateRegex.test(cleaned)) {
+    if (cleaned && cleaned !== current.title && cleaned !== current.company && !looksDateLike(cleaned)) {
       current.bullets.push(cleaned);
     }
   }
@@ -146,7 +179,7 @@ function parseExperiences(rawLines: string[]) {
   if (current) entries.push(current);
 
   return entries
-    .filter((entry) => entry.title.length > 1)
+    .filter((entry) => entry.title.length > 1 && !looksDateLike(entry.title))
     .map((entry) => ({
       ...entry,
       bullets: entry.bullets.slice(0, 4),
