@@ -16,6 +16,7 @@ type ResumeSection = {
 
 type ExperienceEntry = {
   title: string;
+  company?: string;
   date?: string;
   bullets: string[];
 };
@@ -25,6 +26,8 @@ type StructuredCvData = {
   experience: ExperienceEntry[];
   educationLines: string[];
   skillLines: string[];
+  languageLines: string[];
+  additionalLines: string[];
 };
 
 type ContactInfo = {
@@ -120,19 +123,47 @@ function parseExperience(lines: string[]) {
   let current: ExperienceEntry | null = null;
   const dateRegex = /(\b(?:19|20)\d{2}\b\s*[-–—]\s*(?:\b(?:19|20)\d{2}\b|Present|Current|Aujourd'hui|Now))/i;
 
+  const looksCompanyLine = (value: string) => {
+    return /\s[—–-]\s/.test(value) && !dateRegex.test(value) && value.length <= 90;
+  };
+
+  const parseHeader = (value: string) => {
+    const date = value.match(dateRegex)?.[0];
+    const withoutDate = date ? value.replace(date, "").trim() : value;
+    const parts = withoutDate.split(/\s+[|]\s+|\s+[—–]\s+|\s+-\s+/).map((item) => item.trim()).filter(Boolean);
+
+    if (parts.length >= 2) {
+      return {
+        title: parts[0],
+        company: parts.slice(1).join(" — "),
+        date,
+      };
+    }
+
+    return {
+      title: withoutDate.replace(/[|·•-]\s*$/, "").trim(),
+      company: undefined,
+      date,
+    };
+  };
+
   for (const rawLine of lines) {
     const line = rawLine.trim();
     if (!line) continue;
 
     const isBullet = /^[•▪◦-]\s*/.test(rawLine);
     const hasDate = dateRegex.test(line);
-    const looksHeader = hasDate || /\||\s[—–-]\s/.test(line) || line.length < 90;
+    const looksHeader = hasDate || /\||\s[—–-]\s/.test(line) || line.length < 85;
+
+    if (!isBullet && current && !current.company && !hasDate && looksCompanyLine(line)) {
+      current.company = line;
+      continue;
+    }
 
     if (!isBullet && looksHeader) {
       if (current) entries.push(current);
-      const date = line.match(dateRegex)?.[0];
-      const clean = date ? line.replace(date, "").replace(/[|·•-]\s*$/, "").trim() : line;
-      current = { title: clean, date, bullets: [] };
+      const parsed = parseHeader(line);
+      current = { title: parsed.title, company: parsed.company, date: parsed.date, bullets: [] };
       continue;
     }
 
@@ -141,7 +172,10 @@ function parseExperience(lines: string[]) {
       continue;
     }
 
-    current.bullets.push(line.replace(/^[-•▪◦]\s*/, "").trim());
+    const cleaned = line.replace(/^[-•▪◦]\s*/, "").trim();
+    if (cleaned && !dateRegex.test(cleaned) && cleaned !== current.title && cleaned !== current.company) {
+      current.bullets.push(cleaned);
+    }
   }
 
   if (current) entries.push(current);
@@ -159,12 +193,24 @@ function toStructuredCvData(optimizedResumeText: string): StructuredCvData {
   const summaryLines = getLines("Summary");
   const experienceLines = getLines("Experience");
   const educationLines = getLines("Education", "Projects").slice(0, 14);
-  const rawSkills = getLines("Skills", "Languages", "Certifications");
+  const rawSkills = getLines("Skills");
+  const rawLanguages = getLines("Languages");
+  const rawAdditional = getLines("Certifications", "Projects");
 
   const skillLines = rawSkills
     .flatMap((line) => splitSkillLine(line))
     .filter((value, index, arr) => arr.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index)
-    .slice(0, 24);
+    .slice(0, 18);
+
+  const languageLines = rawLanguages
+    .flatMap((line) => splitSkillLine(line))
+    .filter((value, index, arr) => arr.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index)
+    .slice(0, 10);
+
+  const additionalLines = rawAdditional
+    .flatMap((line) => splitSkillLine(line))
+    .filter((value, index, arr) => arr.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index)
+    .slice(0, 12);
 
   const fallbackSummary = sections
     .filter((section) => section.heading !== "Experience")
@@ -177,6 +223,8 @@ function toStructuredCvData(optimizedResumeText: string): StructuredCvData {
     experience: parseExperience(experienceLines),
     educationLines,
     skillLines,
+    languageLines,
+    additionalLines,
   };
 }
 
@@ -191,7 +239,10 @@ function renderExperienceBlock(entries: ExperienceEntry[]) {
 
       return `<div class="job">
   <div class="job-header">
-    <span class="job-title">${escapeHtml(entry.title)}</span>
+    <div>
+      <div class="job-title">${escapeHtml(entry.title)}</div>
+      ${entry.company ? `<div class="company">${escapeHtml(entry.company)}</div>` : ""}
+    </div>
     ${entry.date ? `<span class="job-date">${escapeHtml(entry.date)}</span>` : ""}
   </div>
   ${bullets ? `<ul>${bullets}</ul>` : ""}
@@ -206,6 +257,11 @@ function renderEducationBlock(lines: string[]) {
 
 function renderSkillsBlock(lines: string[]) {
   return `<ul>${lines.slice(0, 20).map((line) => `<li>${escapeHtml(line)}</li>`).join("\n")}</ul>`;
+}
+
+function renderAdditionalBlock(lines: string[]) {
+  if (!lines.length) return "";
+  return `<ul>${lines.slice(0, 12).map((line) => `<li>${escapeHtml(line)}</li>`).join("\n")}</ul>`;
 }
 
 function renderSummary(lines: string[]) {
@@ -228,6 +284,8 @@ function extractBlocks(optimizedResumeText: string) {
     experienceBlock: renderExperienceBlock(structured.experience),
     educationBlock: renderEducationBlock(structured.educationLines),
     skillsBlock: renderSkillsBlock(structured.skillLines),
+    languagesBlock: renderSkillsBlock(structured.languageLines),
+    additionalBlock: renderAdditionalBlock(structured.additionalLines),
   };
 }
 
@@ -273,8 +331,14 @@ body{
 .job-header{
   display:flex;
   justify-content:space-between;
+  align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.company{
+  font-size:11px;
+  font-weight:500;
+  color:#374151;
 }
 .job-date{
   font-size:10px;
@@ -307,6 +371,13 @@ ul{
 <div class="section-title">Skills</div>
 {{SKILLS_BLOCK}}
 </div>
+
+<div class="section">
+<div class="section-title">Languages</div>
+{{LANGUAGES_BLOCK}}
+</div>
+
+{{ADDITIONAL_SECTION}}
 
 </body>
 </html>`,
@@ -354,8 +425,14 @@ body{font-family:Inter;margin:0;}
 .job-header{
   display:flex;
   justify-content:space-between;
+  align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.company{
+  font-size:11px;
+  font-weight:500;
+  color:#d1d5db;
 }
 .job-date{
   font-size:10px;
@@ -381,6 +458,11 @@ ul{
 {{EXPERIENCE_BLOCK}}
 <h3 class="section-title">Education</h3>
 {{EDUCATION_BLOCK}}
+
+<h3 class="section-title">Languages</h3>
+{{LANGUAGES_BLOCK}}
+
+{{ADDITIONAL_SECTION}}
 </div>
 </div>
 </body>
@@ -413,8 +495,13 @@ h2{
 .job-header{
   display:flex;
   justify-content:space-between;
+  align-items:baseline;
   font-size:11px;
   font-weight:600;
+}
+.company{
+  font-size:11px;
+  font-weight:500;
 }
 .job-date{
   font-size:10px;
@@ -441,6 +528,11 @@ ul{
 
 <h2>Skills</h2>
 {{SKILLS_BLOCK}}
+
+<h2>Languages</h2>
+{{LANGUAGES_BLOCK}}
+
+{{ADDITIONAL_SECTION}}
 </body>
 </html>`,
     "Executive Grey": `<!DOCTYPE html>
@@ -477,8 +569,14 @@ body{font-family:Inter;margin:0;color:#111;}
 .job-header{
   display:flex;
   justify-content:space-between;
+  align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.company{
+  font-size:11px;
+  font-weight:500;
+  color:#374151;
 }
 .job-date{
   font-size:10px;
@@ -506,6 +604,11 @@ ul{
 
 <div class="section-title">Skills</div>
 {{SKILLS_BLOCK}}
+
+<div class="section-title">Languages</div>
+{{LANGUAGES_BLOCK}}
+
+{{ADDITIONAL_SECTION}}
 </div>
 </body>
 </html>`,
@@ -545,8 +648,14 @@ body{
 .job-header{
   display:flex;
   justify-content:space-between;
+  align-items:baseline;
   font-size:12px;
   font-weight:600;
+}
+.company{
+  font-size:11px;
+  font-weight:500;
+  color:#475569;
 }
 .job-date{
   font-size:10px;
@@ -572,6 +681,11 @@ ul{
 
 <div class="section-title">Skills</div>
 {{SKILLS_BLOCK}}
+
+<div class="section-title">Languages</div>
+{{LANGUAGES_BLOCK}}
+
+{{ADDITIONAL_SECTION}}
 </body>
 </html>`,
   };
@@ -599,14 +713,25 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const template = buildTemplate(templateChoice);
   const blocks = extractBlocks(args.optimizedResumeText);
   const contact = extractContact(args.originalResumeText);
+  const additionalSection = blocks.additionalBlock
+    ? `<div class="section-title">Additional</div>${blocks.additionalBlock}`
+    : "";
+  const summarySection = blocks.summary
+    ? `<h2>Professional Summary</h2>
+<p>${blocks.summary}</p>`
+    : "";
 
   const hydrated = template
     .replaceAll("{{FULL_NAME}}", escapeHtml(args.title))
     .replaceAll("{{CONTACT_LINE}}", renderContactLine(contact))
     .replaceAll("{{SUMMARY}}", blocks.summary)
+    .replaceAll("<h2>Professional Summary</h2>\n<p>{{SUMMARY}}</p>", summarySection)
+    .replaceAll("<h2>Professional Summary</h2>\r\n<p>{{SUMMARY}}</p>", summarySection)
     .replaceAll("{{EXPERIENCE_BLOCK}}", blocks.experienceBlock)
     .replaceAll("{{EDUCATION_BLOCK}}", blocks.educationBlock)
-    .replaceAll("{{SKILLS_BLOCK}}", blocks.skillsBlock);
+    .replaceAll("{{SKILLS_BLOCK}}", blocks.skillsBlock)
+    .replaceAll("{{LANGUAGES_BLOCK}}", blocks.languagesBlock)
+    .replaceAll("{{ADDITIONAL_SECTION}}", additionalSection);
 
   return {
     html: withPrintReliability(hydrated),
