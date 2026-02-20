@@ -25,8 +25,8 @@ export async function renderResumePdfWithPuppeteer(args: RenderArgs) {
   const browser = await puppeteer.launch({
     args: chromium.args,
     defaultViewport: {
-      width: 1240,
-      height: 1754,
+      width: 794,
+      height: 1123,
       deviceScaleFactor: 1,
     },
     executablePath,
@@ -35,7 +35,8 @@ export async function renderResumePdfWithPuppeteer(args: RenderArgs) {
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "domcontentloaded" });
+    await page.evaluateHandle("document.fonts.ready");
     await page.emulateMediaType("print");
 
     const pdfBuffer = await page.pdf({
