@@ -83,7 +83,8 @@ export default function Home() {
   const [hybridConfidence, setHybridConfidence] = useState<Record<string, number> | null>(null);
   const [overlapWarnings, setOverlapWarnings] = useState<string[]>([]);
   const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
-  const [experienceSummaries, setExperienceSummaries] = useState<string[]>([]);
+  const [, setExperienceSummaries] = useState<string[]>([]);
+  const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
   const [jobPreview, setJobPreview] = useState<JobPreview | null>(null);
   const [jobPreviewLoading, setJobPreviewLoading] = useState(false);
   const [cvObjectUrl, setCvObjectUrl] = useState<string | null>(null);
@@ -156,6 +157,14 @@ export default function Home() {
       URL.revokeObjectURL(objectUrl);
     };
   }, [file]);
+
+  useEffect(() => {
+    if (!structuredCv) return;
+    const maxIndex = Math.max(0, structuredCv.experiences.length - 1);
+    if (activeExperienceIndex > maxIndex) {
+      setActiveExperienceIndex(maxIndex);
+    }
+  }, [structuredCv, activeExperienceIndex]);
 
   async function callGenerate(validatedStructuredCv: StructuredCv) {
     if (!file) {
@@ -245,6 +254,7 @@ export default function Home() {
       setOverlapWarnings(data.overlapWarnings ?? []);
       setSuggestedImprovements(data.suggestedImprovements ?? []);
       setExperienceSummaries(data.experienceSummaries ?? []);
+      setActiveExperienceIndex(0);
       setHybridModalOpen(true);
     } catch {
       setPreparingStructure(false);
@@ -254,9 +264,38 @@ export default function Home() {
       setOverlapWarnings([]);
       setSuggestedImprovements([]);
       setExperienceSummaries([]);
+      setActiveExperienceIndex(0);
       setHybridModalOpen(true);
       setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
+  }
+
+  function updateExperienceField(
+    experienceIndex: number,
+    field: "title" | "company" | "date" | "location",
+    value: string,
+  ) {
+    setStructuredCv((previous) => {
+      if (!previous) return previous;
+      const nextExperiences = previous.experiences.map((experience, index) =>
+        index === experienceIndex ? { ...experience, [field]: value } : experience,
+      );
+      return { ...previous, experiences: nextExperiences };
+    });
+  }
+
+  function updateExperienceBullets(experienceIndex: number, value: string) {
+    setStructuredCv((previous) => {
+      if (!previous) return previous;
+      const nextBullets = value
+        .split("\n")
+        .map((bullet) => bullet.trim())
+        .filter(Boolean);
+      const nextExperiences = previous.experiences.map((experience, index) =>
+        index === experienceIndex ? { ...experience, bullets: nextBullets } : experience,
+      );
+      return { ...previous, experiences: nextExperiences };
+    });
   }
 
   async function validateHybridAndGenerate() {
@@ -822,56 +861,77 @@ export default function Home() {
                 </ul>
               ) : null}
 
-              {experienceSummaries.length ? (
-                <div className="mb-3 rounded border border-indigo-200 bg-indigo-50 p-2 text-xs dark:border-indigo-900 dark:bg-indigo-950/30">
-                  <p className="mb-1 font-semibold text-indigo-700 dark:text-indigo-300">
-                    Résumé clair de chaque expérience
-                  </p>
-                  <ul className="list-disc pl-5 text-slate-700 dark:text-slate-200">
-                    {experienceSummaries.map((summary, index) => (
-                      <li key={`home-summary-${index}`}>{summary}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
-                <p className="mb-2 font-semibold">Résultat lu par l&apos;IA</p>
-                <p className="mb-2 text-slate-600 dark:text-slate-300">
-                  Résumé: {structuredCv.summary || "Non détecté"}
-                </p>
+                <p className="mb-2 font-semibold">Vérification guidée</p>
                 {structuredCv.experiences.length ? (
-                  <div className="space-y-2">
-                    {structuredCv.experiences.map((experience, index) => (
-                      <div
-                        key={`${experience.title}-${index}`}
-                        className="rounded border border-slate-200 bg-white p-2 dark:border-slate-700 dark:bg-slate-950"
-                      >
-                        <p>
-                          <span className="font-medium">{index + 1}. Poste:</span> {experience.title || ""}
-                        </p>
-                        <p>
-                          <span className="font-medium">Entreprise:</span> {experience.company || ""}
-                        </p>
-                        <p>
-                          <span className="font-medium">Lieu:</span> {experience.location || ""}
-                        </p>
-                        <p>
-                          <span className="font-medium">Dates:</span> {experience.date || ""}
-                        </p>
-                        <p className="font-medium">Missions:</p>
-                        <ul className="list-disc pl-5">
-                          {experience.bullets.length ? (
-                            experience.bullets.map((bullet, bulletIndex) => (
-                              <li key={`${experience.title}-${bulletIndex}`}>{bullet}</li>
-                            ))
-                          ) : (
-                            <li>Aucune mission détectée</li>
-                          )}
-                        </ul>
+                  <>
+                    <div className="mb-3 flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950">
+                      <p>
+                        Expérience {activeExperienceIndex + 1} / {structuredCv.experiences.length}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => setActiveExperienceIndex((current) => Math.max(0, current - 1))}
+                          disabled={activeExperienceIndex === 0}
+                        >
+                          Précédent
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            setActiveExperienceIndex((current) =>
+                              Math.min(structuredCv.experiences.length - 1, current + 1),
+                            )
+                          }
+                          disabled={activeExperienceIndex >= structuredCv.experiences.length - 1}
+                        >
+                          Suivant
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+
+                    <div className="space-y-2 rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
+                      <Input
+                        placeholder="Nom du poste"
+                        value={structuredCv.experiences[activeExperienceIndex]?.title ?? ""}
+                        onChange={(event) =>
+                          updateExperienceField(activeExperienceIndex, "title", event.target.value)
+                        }
+                      />
+                      <Input
+                        placeholder="Entreprise"
+                        value={structuredCv.experiences[activeExperienceIndex]?.company ?? ""}
+                        onChange={(event) =>
+                          updateExperienceField(activeExperienceIndex, "company", event.target.value)
+                        }
+                      />
+                      <Input
+                        placeholder="Lieu"
+                        value={structuredCv.experiences[activeExperienceIndex]?.location ?? ""}
+                        onChange={(event) =>
+                          updateExperienceField(activeExperienceIndex, "location", event.target.value)
+                        }
+                      />
+                      <Input
+                        placeholder="Dates"
+                        value={structuredCv.experiences[activeExperienceIndex]?.date ?? ""}
+                        onChange={(event) =>
+                          updateExperienceField(activeExperienceIndex, "date", event.target.value)
+                        }
+                      />
+                      <textarea
+                        value={structuredCv.experiences[activeExperienceIndex]?.bullets.join("\n") ?? ""}
+                        onChange={(event) =>
+                          updateExperienceBullets(activeExperienceIndex, event.target.value)
+                        }
+                        placeholder="Missions (une ligne = une mission)"
+                        className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+                      />
+                    </div>
+                  </>
                 ) : (
                   <p>Aucune expérience détectée.</p>
                 )}
