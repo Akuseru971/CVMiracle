@@ -356,6 +356,7 @@ body {
   margin: 34px 42px;
   color: #0f172a;
   line-height: 1.45;
+  text-align: justify;
 }
 .header {
   border-top: 6px solid #0f172a;
@@ -366,11 +367,16 @@ body {
   font-size: 32px;
   font-weight: 800;
   letter-spacing: 0.25px;
+  text-align: left;
 }
 .contact {
   margin-top: 6px;
   color: #475569;
   font-size: 11px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  text-align: left;
 }
 .summary {
   background: #f8fafc;
@@ -389,6 +395,7 @@ body {
   margin-bottom: 8px;
   color: #0f172a;
   font-weight: 800;
+  text-align: left;
 }
 .job {
   margin-bottom: 12px;
@@ -400,18 +407,22 @@ body {
   align-items: baseline;
 }
 .job-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.15px;
+  text-align: left;
 }
 .company {
-  font-size: 11px;
+  font-size: 12px;
   color: #334155;
-  font-weight: 500;
+  font-weight: 700;
+  text-align: left;
 }
 .job-date {
   font-size: 10px;
   color: #64748b;
   white-space: nowrap;
+  text-align: right;
 }
 ul {
   margin: 5px 0 0 16px;
@@ -420,13 +431,14 @@ ul {
 }
 li {
   margin-bottom: 2px;
+  text-align: justify;
 }
 </style>
 </head>
 <body>
 <div class="header">
 <div class="name">{{FULL_NAME}}</div>
-<div class="contact">{{CONTACT_LINE}}</div>
+<div class="contact"><span><strong>Tél :</strong> {{PHONE}}</span><span><strong>Email :</strong> {{EMAIL}}</span></div>
 </div>
 
 {{SUMMARY_SECTION}}
@@ -464,6 +476,7 @@ body {
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: #0f172a;
+  text-align: justify;
 }
 .wrapper {
   display: grid;
@@ -479,12 +492,14 @@ body {
   font-size: 26px;
   font-weight: 800;
   line-height: 1.1;
+  text-align: left;
 }
 .sidebar .contact {
   font-size: 10.5px;
   color: #cbd5e1;
   margin-top: 8px;
   line-height: 1.45;
+  text-align: left;
 }
 .panel-title {
   margin-top: 18px;
@@ -523,6 +538,7 @@ body {
   color: #1e3a8a;
   margin-bottom: 7px;
   font-weight: 800;
+  text-align: left;
 }
 .job {
   margin-bottom: 12px;
@@ -534,12 +550,15 @@ body {
   align-items: baseline;
 }
 .job-title {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 13.5px;
+  font-weight: 800;
+  text-align: left;
 }
 .company {
-  font-size: 10.8px;
+  font-size: 11.6px;
   color: #334155;
+  font-weight: 700;
+  text-align: left;
 }
 .job-date {
   font-size: 10px;
@@ -552,13 +571,16 @@ body {
   line-height: 1.45;
   padding: 0;
 }
+.main li {
+  text-align: justify;
+}
 </style>
 </head>
 <body>
 <div class="wrapper">
 <div class="sidebar">
 <div class="name">{{FULL_NAME}}</div>
-<p class="contact">{{CONTACT_LINE}}</p>
+<p class="contact"><strong>Tél :</strong> {{PHONE}}<br /><strong>Email :</strong> {{EMAIL}}</p>
 {{SUMMARY_SECTION}}
 <div class="panel-title">Skills</div>
 {{SKILLS_BLOCK}}
@@ -589,14 +611,17 @@ body {
   margin: 34px 40px;
   color: #000;
   line-height: 1.42;
+  text-align: justify;
 }
 h1 {
   font-size: 28px;
   margin: 0 0 6px;
+  text-align: left;
 }
 .contact {
   font-size: 10.5px;
   margin: 0 0 14px;
+  text-align: left;
 }
 .summary {
   font-size: 10.8px;
@@ -610,6 +635,7 @@ h2 {
   letter-spacing: 0.6px;
   border-bottom: 1px solid #000;
   padding-bottom: 3px;
+  text-align: left;
 }
 .job {
   margin-bottom: 8px;
@@ -621,11 +647,14 @@ h2 {
   gap: 10px;
 }
 .job-title {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12.8px;
+  font-weight: 800;
+  text-align: left;
 }
 .company {
-  font-size: 10.5px;
+  font-size: 11.4px;
+  font-weight: 700;
+  text-align: left;
 }
 .job-date {
   font-size: 10px;
@@ -636,12 +665,12 @@ ul {
   padding: 0;
   font-size: 10.5px;
 }
-li { margin-bottom: 1px; }
+li { margin-bottom: 1px; text-align: justify; }
 </style>
 </head>
 <body>
 <h1>{{FULL_NAME}}</h1>
-<p class="contact">{{CONTACT_LINE}}</p>
+<p class="contact"><strong>Tél :</strong> {{PHONE}} · <strong>Email :</strong> {{EMAIL}}</p>
 
 {{SUMMARY_SECTION}}
 
@@ -669,6 +698,7 @@ body {
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: #111827;
+  text-align: justify;
 }
 .top {
   background: linear-gradient(90deg, #e5e7eb 0%, #f8fafc 100%);
@@ -678,11 +708,13 @@ body {
 .name {
   font-size: 30px;
   font-weight: 800;
+  text-align: left;
 }
 .contact {
   font-size: 10.8px;
   color: #4b5563;
   margin-top: 6px;
+  text-align: left;
 }
 .summary {
   margin-top: 10px;
@@ -701,6 +733,7 @@ body {
   letter-spacing: 1px;
   font-weight: 800;
   color: #1f2937;
+  text-align: left;
 }
 .job {
   margin-bottom: 11px;
@@ -714,12 +747,15 @@ body {
   align-items: baseline;
 }
 .job-title {
-  font-size: 11.8px;
-  font-weight: 700;
+  font-size: 13.2px;
+  font-weight: 800;
+  text-align: left;
 }
 .company {
-  font-size: 10.7px;
+  font-size: 11.6px;
   color: #4b5563;
+  font-weight: 700;
+  text-align: left;
 }
 .job-date {
   font-size: 10px;
@@ -732,12 +768,13 @@ ul {
   font-size: 10.7px;
   line-height: 1.45;
 }
+li { text-align: justify; }
 </style>
 </head>
 <body>
 <div class="top">
 <div class="name">{{FULL_NAME}}</div>
-<div class="contact">{{CONTACT_LINE}}</div>
+<div class="contact"><strong>Tél :</strong> {{PHONE}} · <strong>Email :</strong> {{EMAIL}}</div>
 {{SUMMARY_SECTION}}
 </div>
 
@@ -767,6 +804,7 @@ body {
   font-family: "Inter", "Segoe UI", Arial, sans-serif;
   margin: 0;
   color: #1e293b;
+  text-align: justify;
 }
 .page {
   padding: 30px 36px;
@@ -780,6 +818,7 @@ body {
 .name {
   font-size: 31px;
   font-weight: 800;
+  text-align: left;
 }
 .contact {
   font-size: 10.8px;
@@ -807,6 +846,7 @@ body {
   text-transform: uppercase;
   letter-spacing: 0.9px;
   color: #1d4ed8;
+  text-align: left;
 }
 .job {
   margin-bottom: 10px;
@@ -823,12 +863,15 @@ body {
   align-items: baseline;
 }
 .job-title {
-  font-size: 11.8px;
-  font-weight: 700;
+  font-size: 13.2px;
+  font-weight: 800;
+  text-align: left;
 }
 .company {
-  font-size: 10.8px;
+  font-size: 11.6px;
   color: #334155;
+  font-weight: 700;
+  text-align: left;
 }
 .job-date {
   font-size: 10px;
@@ -841,13 +884,14 @@ ul {
   padding: 0;
   line-height: 1.45;
 }
+li { text-align: justify; }
 </style>
 </head>
 <body>
 <div class="page">
   <div class="top">
     <div class="name">{{FULL_NAME}}</div>
-    <div class="contact">{{CONTACT_LINE}}</div>
+    <div class="contact"><strong>Tél :</strong> {{PHONE}}<br /><strong>Email :</strong> {{EMAIL}}</div>
   </div>
   <div class="line"></div>
   {{SUMMARY_SECTION}}
@@ -893,6 +937,8 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const template = buildTemplate(templateChoice);
   const blocks = extractBlocks(args.optimizedResumeText, args.structuredCv);
   const contact = extractContact(args.originalResumeText);
+  const safeEmail = escapeHtml(contact.email ?? "Non renseigné");
+  const safePhone = escapeHtml(contact.phone ?? "Non renseigné");
   const additionalSection = blocks.additionalBlock
     ? `<div class="section-title">Additional</div>${blocks.additionalBlock}`
     : "";
@@ -903,6 +949,8 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const hydrated = template
     .replaceAll("{{FULL_NAME}}", escapeHtml(args.title))
     .replaceAll("{{CONTACT_LINE}}", renderContactLine(contact))
+    .replaceAll("{{EMAIL}}", safeEmail)
+    .replaceAll("{{PHONE}}", safePhone)
     .replaceAll("{{SUMMARY}}", blocks.summary)
     .replaceAll("{{SUMMARY_SECTION}}", summarySection)
     .replaceAll("{{EXPERIENCE_BLOCK}}", blocks.experienceBlock)
