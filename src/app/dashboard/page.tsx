@@ -78,6 +78,7 @@ export default function DashboardPage() {
   const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
   const [, setExperienceSummaries] = useState<string[]>([]);
   const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
+  const [carouselDirection, setCarouselDirection] = useState<1 | -1>(1);
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -210,6 +211,16 @@ export default function DashboardPage() {
       );
       return { ...previous, experiences: nextExperiences };
     });
+  }
+
+  function goToPreviousExperience(total: number) {
+    setCarouselDirection(-1);
+    setActiveExperienceIndex((current) => Math.max(0, Math.min(total - 1, current - 1)));
+  }
+
+  function goToNextExperience(total: number) {
+    setCarouselDirection(1);
+    setActiveExperienceIndex((current) => Math.max(0, Math.min(total - 1, current + 1)));
   }
 
   const hybridIssues = structuredCv ? getHybridValidationIssues(structuredCv) : [];
@@ -519,9 +530,7 @@ export default function DashboardPage() {
                           <Button
                             type="button"
                             variant="secondary"
-                            onClick={() =>
-                              setActiveExperienceIndex((current) => Math.max(0, current - 1))
-                            }
+                            onClick={() => goToPreviousExperience(structuredCv.experiences.length)}
                             disabled={activeExperienceIndex === 0}
                           >
                             Précédent
@@ -529,11 +538,7 @@ export default function DashboardPage() {
                           <Button
                             type="button"
                             variant="secondary"
-                            onClick={() =>
-                              setActiveExperienceIndex((current) =>
-                                Math.min(structuredCv.experiences.length - 1, current + 1),
-                              )
-                            }
+                            onClick={() => goToNextExperience(structuredCv.experiences.length)}
                             disabled={activeExperienceIndex >= structuredCv.experiences.length - 1}
                           >
                             Suivant
@@ -541,45 +546,79 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      <div className="space-y-2 rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950">
-                        <Input
-                          placeholder="Nom du poste"
-                          value={structuredCv.experiences[activeExperienceIndex]?.title ?? ""}
-                          onChange={(event) =>
-                            updateExperienceField(activeExperienceIndex, "title", event.target.value)
-                          }
-                        />
-                        <Input
-                          placeholder="Entreprise"
-                          value={structuredCv.experiences[activeExperienceIndex]?.company ?? ""}
-                          onChange={(event) =>
-                            updateExperienceField(activeExperienceIndex, "company", event.target.value)
-                          }
-                        />
-                        <Input
-                          placeholder="Lieu"
-                          value={structuredCv.experiences[activeExperienceIndex]?.location ?? ""}
-                          onChange={(event) =>
-                            updateExperienceField(activeExperienceIndex, "location", event.target.value)
-                          }
-                        />
-                        <Input
-                          placeholder="Dates"
-                          value={structuredCv.experiences[activeExperienceIndex]?.date ?? ""}
-                          onChange={(event) =>
-                            updateExperienceField(activeExperienceIndex, "date", event.target.value)
-                          }
-                        />
-                        <textarea
-                          value={
-                            structuredCv.experiences[activeExperienceIndex]?.bullets.join("\n") ?? ""
-                          }
-                          onChange={(event) =>
-                            updateExperienceBullets(activeExperienceIndex, event.target.value)
-                          }
-                          placeholder="Missions (une ligne = une mission)"
-                          className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
-                        />
+                      <div
+                        key={activeExperienceIndex}
+                        style={{
+                          animation:
+                            carouselDirection === 1
+                              ? "carouselSlideLeft 220ms ease"
+                              : "carouselSlideRight 220ms ease",
+                        }}
+                        className="space-y-3 rounded border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-950"
+                      >
+                        <div>
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                            Nom du poste
+                          </p>
+                          <Input
+                            placeholder="Nom du poste"
+                            value={structuredCv.experiences[activeExperienceIndex]?.title ?? ""}
+                            onChange={(event) =>
+                              updateExperienceField(activeExperienceIndex, "title", event.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                            Entreprise
+                          </p>
+                          <Input
+                            placeholder="Entreprise"
+                            value={structuredCv.experiences[activeExperienceIndex]?.company ?? ""}
+                            onChange={(event) =>
+                              updateExperienceField(activeExperienceIndex, "company", event.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                            Lieu
+                          </p>
+                          <Input
+                            placeholder="Lieu"
+                            value={structuredCv.experiences[activeExperienceIndex]?.location ?? ""}
+                            onChange={(event) =>
+                              updateExperienceField(activeExperienceIndex, "location", event.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                            Dates
+                          </p>
+                          <Input
+                            placeholder="Dates"
+                            value={structuredCv.experiences[activeExperienceIndex]?.date ?? ""}
+                            onChange={(event) =>
+                              updateExperienceField(activeExperienceIndex, "date", event.target.value)
+                            }
+                          />
+                        </div>
+                        <div>
+                          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                            Missions
+                          </p>
+                          <textarea
+                            value={
+                              structuredCv.experiences[activeExperienceIndex]?.bullets.join("\n") ?? ""
+                            }
+                            onChange={(event) =>
+                              updateExperienceBullets(activeExperienceIndex, event.target.value)
+                            }
+                            placeholder="Missions (une ligne = une mission)"
+                            className="min-h-[120px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-800 dark:bg-slate-950"
+                          />
+                        </div>
                       </div>
                     </>
                   ) : (
@@ -596,6 +635,29 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : null}
+      <style jsx>{`
+        @keyframes carouselSlideLeft {
+          from {
+            opacity: 0;
+            transform: translateX(14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes carouselSlideRight {
+          from {
+            opacity: 0;
+            transform: translateX(-14px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+      `}</style>
       </main>
     </div>
   );
