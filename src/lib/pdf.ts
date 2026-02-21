@@ -19,6 +19,10 @@ type ParsedSection = { heading: string; lines: string[] };
 type PdfFallbackOptions = {
   templateChoice?: string;
   originalResumeText?: string;
+  contactOverride?: {
+    email?: string;
+    phone?: string;
+  };
 };
 
 function parseSections(raw: string) {
@@ -55,11 +59,11 @@ function normalizeHeading(heading: string) {
   return clean;
 }
 
-function extractContactLine(text?: string) {
+function extractContactLine(text?: string, contactOverride?: PdfFallbackOptions["contactOverride"]) {
   if (!text) return "";
   const head = text.split("\n").slice(0, 12).join("\n");
-  const email = head.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
-  const phone = head.match(/(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,3}\)?[\s.-]?){3,5}\d{2,4}/)?.[0];
+  const email = contactOverride?.email?.trim() || head.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0];
+  const phone = contactOverride?.phone?.trim() || head.match(/(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,3}\)?[\s.-]?){3,5}\d{2,4}/)?.[0];
   const website = head.match(/(?:https?:\/\/)?(?:www\.)?(?:linkedin\.com\/[\w\-/%]+|github\.com\/[\w\-]+|[\w-]+\.(?:dev|io|com|fr))/i)?.[0]?.replace(/^https?:\/\//i, "");
   const location = head.match(/(?:Paris|Lyon|Marseille|Toulouse|Nantes|Bordeaux|Lille|Remote|France|Belgique|Suisse|Canada)/i)?.[0];
   return [email, phone, website, location].filter(Boolean).join(" • ");
@@ -178,7 +182,7 @@ export function buildResumePdfBuffer(
     const sections = parseSections(resumeText);
 
     const templateChoice = normalizeTemplateChoice(options?.templateChoice ?? "Executive Classic");
-    const contactLine = extractContactLine(options?.originalResumeText);
+    const contactLine = extractContactLine(options?.originalResumeText, options?.contactOverride);
     drawByTemplate(doc, templateChoice, safeTitle, sections, matchScore, contactLine);
 
     doc.end();

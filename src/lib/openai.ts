@@ -24,6 +24,14 @@ const replacementsSchema = z.object({
 });
 
 const structuredCvSchema = z.object({
+  contact: z
+    .object({
+      fullName: z.string().optional().default(""),
+      email: z.string().optional().default(""),
+      phone: z.string().optional().default(""),
+    })
+    .optional()
+    .default({ fullName: "", email: "", phone: "" }),
   summary: z.string().optional().default(""),
   experiences: z
     .array(
@@ -208,7 +216,7 @@ export async function extractStructuredCvWithAI(args: {
       },
       {
         role: "user",
-        content: `Job offer context:\n${args.jobOfferText.slice(0, 8000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape: { summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
+        content: `Job offer context:\n${args.jobOfferText.slice(0, 8000)}\n\nCV text:\n${args.cvText.slice(0, 18000)}\n\nReturn JSON only with this shape: { contact:{fullName,email,phone}, summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
       },
     ],
   });
@@ -401,7 +409,7 @@ export async function adaptStructuredReadWithSummariesAI(args: {
       },
       {
         role: "user",
-        content: `Raw CV text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context:\n${args.jobOfferText.slice(0, 5000)}\n\nCurrent heuristic structured read:\n${JSON.stringify(args.heuristicStructured)}\n\nClear experience summaries:\n${args.experienceSummaries.join("\n")}\n\nReturn JSON only with shape:\n{ summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
+        content: `Raw CV text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context:\n${args.jobOfferText.slice(0, 5000)}\n\nCurrent heuristic structured read:\n${JSON.stringify(args.heuristicStructured)}\n\nClear experience summaries:\n${args.experienceSummaries.join("\n")}\n\nReturn JSON only with shape:\n{ contact:{fullName,email,phone}, summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
       },
     ],
   });

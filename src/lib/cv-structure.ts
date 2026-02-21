@@ -7,6 +7,11 @@ export type CvExperience = {
 };
 
 export type StructuredCv = {
+  contact: {
+    fullName: string;
+    email: string;
+    phone: string;
+  };
   summary: string;
   experiences: CvExperience[];
   education: string[];
@@ -48,6 +53,25 @@ function dedupe(values: string[]) {
   return values.filter(
     (value, index, arr) => arr.findIndex((item) => item.toLowerCase() === value.toLowerCase()) === index,
   );
+}
+
+function extractPrimaryContact(text: string) {
+  const head = text.split("\n").slice(0, 14).join("\n");
+
+  const email = head.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0] ?? "";
+  const phone =
+    head.match(/(?:\+\d{1,3}[\s.-]?)?(?:\(?\d{2,3}\)?[\s.-]?){3,5}\d{2,4}/)?.[0] ?? "";
+
+  const nameCandidate = text
+    .split("\n")
+    .map((line) => line.trim())
+    .find((line) => /^[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ'\-\s]{2,60}$/.test(line) && line.split(/\s+/).length <= 4);
+
+  return {
+    fullName: nameCandidate ?? "",
+    email,
+    phone,
+  };
 }
 
 function parseSectionsRaw(text: string) {
@@ -188,6 +212,7 @@ function parseExperiences(rawLines: string[]) {
 
 export function parseStructuredCvFromText(text: string): StructuredCv {
   const rawSections = parseSectionsRaw(text);
+  const contact = extractPrimaryContact(text);
 
   const getLines = (...names: string[]) =>
     rawSections
@@ -219,6 +244,7 @@ export function parseStructuredCvFromText(text: string): StructuredCv {
   const additional = dedupe(getLines("Certifications", "Projects").flatMap(splitSkillLine)).slice(0, 12);
 
   return {
+    contact,
     summary,
     experiences,
     education,
@@ -230,6 +256,11 @@ export function parseStructuredCvFromText(text: string): StructuredCv {
 
 export function sanitizeStructuredCv(input: StructuredCv): StructuredCv {
   return {
+    contact: {
+      fullName: input.contact?.fullName?.trim() ?? "",
+      email: input.contact?.email?.trim() ?? "",
+      phone: input.contact?.phone?.trim() ?? "",
+    },
     summary: input.summary?.trim() ?? "",
     experiences: (input.experiences ?? [])
       .map((entry) => ({
@@ -260,6 +291,7 @@ export function structuredCvToText(input: StructuredCv) {
     .join("\n\n");
 
   const sections = [
+    [safe.contact.fullName, safe.contact.phone, safe.contact.email].filter(Boolean).join(" | "),
     safe.summary ? `Summary\n${safe.summary}` : "",
     experienceText ? `Experience\n${experienceText}` : "",
     safe.education.length ? `Education\n${safe.education.map((item) => `- ${item}`).join("\n")}` : "",
@@ -274,6 +306,18 @@ export function structuredCvToText(input: StructuredCv) {
 export function getHybridValidationIssues(input: StructuredCv) {
   const safe = sanitizeStructuredCv(input);
   const issues: string[] = [];
+
+  if (!safe.contact.fullName.trim()) {
+    issues.push("Contact: Nom et prénom manquants.");
+  }
+
+  if (!safe.contact.email.trim()) {
+    issues.push("Contact: Email manquant.");
+  }
+
+  if (!safe.contact.phone.trim()) {
+    issues.push("Contact: Téléphone manquant.");
+  }
 
   if (!safe.experiences.length) {
     issues.push("Ajoute au moins une expérience.");

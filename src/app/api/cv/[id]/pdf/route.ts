@@ -86,12 +86,16 @@ export async function GET(
     });
   } catch {
     pdf = await buildResumePdfBuffer(
-      application.title,
+      structuredCv?.contact?.fullName?.trim() || application.title,
       resumeTextForTemplate,
       application.matchScore,
       {
         templateChoice: forcedTemplateChoice ?? application.templateChoice,
         originalResumeText: originalCvText,
+        contactOverride: {
+          email: structuredCv?.contact?.email,
+          phone: structuredCv?.contact?.phone,
+        },
       },
     );
   }

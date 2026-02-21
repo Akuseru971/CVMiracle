@@ -279,6 +279,7 @@ export function computeHybridConfidence(input: HybridCvForm): HybridConfidence {
 
 export function mapStructuredToHybrid(structured: StructuredCv): HybridCvForm {
   const safe = {
+    contact: structured.contact ?? { fullName: "", email: "", phone: "" },
     summary: structured.summary ?? "",
     experiences: structured.experiences ?? [],
     education: structured.education ?? [],
@@ -289,10 +290,10 @@ export function mapStructuredToHybrid(structured: StructuredCv): HybridCvForm {
 
   return sanitizeHybridCvForm({
     personalInfo: {
-      fullName: "",
+      fullName: safe.contact.fullName,
       city: "",
-      phone: "",
-      email: "",
+      phone: safe.contact.phone,
+      email: safe.contact.email,
       linkedin: "",
     },
     summary: safe.summary,
@@ -346,6 +347,11 @@ export function mapHybridToStructured(input: HybridCvForm): StructuredCv {
   );
 
   return {
+    contact: {
+      fullName: safe.personalInfo.fullName,
+      email: safe.personalInfo.email,
+      phone: safe.personalInfo.phone,
+    },
     summary: safe.summary,
     experiences,
     education,

@@ -39,6 +39,11 @@ const templateChoices = TEMPLATE_CHOICES;
 
 function createEmptyStructuredCv(): StructuredCv {
   return {
+    contact: {
+      fullName: "",
+      email: "",
+      phone: "",
+    },
     summary: "",
     experiences: [
       {
@@ -245,10 +250,18 @@ export default function Home() {
       }
 
       const nextStructured = data.structuredCv ?? createEmptyStructuredCv();
+      const hydratedStructured: StructuredCv = {
+        ...createEmptyStructuredCv(),
+        ...nextStructured,
+        contact: {
+          ...createEmptyStructuredCv().contact,
+          ...(nextStructured.contact ?? {}),
+        },
+      };
       setStructuredCv(
-        nextStructured.experiences.length
-          ? nextStructured
-          : { ...nextStructured, experiences: createEmptyStructuredCv().experiences },
+        hydratedStructured.experiences.length
+          ? hydratedStructured
+          : { ...hydratedStructured, experiences: createEmptyStructuredCv().experiences },
       );
       setStructureSource(data.source ?? null);
       setHybridConfidence(data.confidence ?? null);
@@ -296,6 +309,19 @@ export default function Home() {
         index === experienceIndex ? { ...experience, bullets: nextBullets } : experience,
       );
       return { ...previous, experiences: nextExperiences };
+    });
+  }
+
+  function updateContactField(field: "fullName" | "email" | "phone", value: string) {
+    setStructuredCv((previous) => {
+      if (!previous) return previous;
+      return {
+        ...previous,
+        contact: {
+          ...(previous.contact ?? createEmptyStructuredCv().contact),
+          [field]: value,
+        },
+      };
     });
   }
 
@@ -859,6 +885,43 @@ export default function Home() {
                 </Button>
               </div>
 
+              <div className="mb-3 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
+                <p className="mb-2 font-semibold">1. Vérification contact</p>
+                <div className="grid gap-2 md:grid-cols-2">
+                  <div className="md:col-span-2">
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Nom & prénom
+                    </p>
+                    <Input
+                      placeholder="Nom et prénom"
+                      value={structuredCv.contact?.fullName ?? ""}
+                      onChange={(event) => updateContactField("fullName", event.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Email
+                    </p>
+                    <Input
+                      placeholder="email@exemple.com"
+                      type="email"
+                      value={structuredCv.contact?.email ?? ""}
+                      onChange={(event) => updateContactField("email", event.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
+                      Téléphone
+                    </p>
+                    <Input
+                      placeholder="+33 ..."
+                      value={structuredCv.contact?.phone ?? ""}
+                      onChange={(event) => updateContactField("phone", event.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
               {overlapWarnings.length ? (
                 <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs text-amber-700 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-300">
                   Chevauchement de dates détecté: {overlapWarnings[0]}
@@ -873,7 +936,7 @@ export default function Home() {
               ) : null}
 
               <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
-                <p className="mb-2 font-semibold">Vérification guidée</p>
+                <p className="mb-2 font-semibold">2. Vérification guidée des expériences</p>
                 {structuredCv.experiences.length ? (
                   <>
                     <div className="mb-3 flex items-center justify-between rounded border border-slate-200 bg-white px-3 py-2 text-xs dark:border-slate-700 dark:bg-slate-950">

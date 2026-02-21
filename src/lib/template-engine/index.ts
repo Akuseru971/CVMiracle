@@ -936,7 +936,15 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
   const templateChoice = normalizeTemplateChoice(args.templateChoice);
   const template = buildTemplate(templateChoice);
   const blocks = extractBlocks(args.optimizedResumeText, args.structuredCv);
-  const contact = extractContact(args.originalResumeText);
+  const extractedContact = extractContact(args.originalResumeText);
+  const structuredContact = args.structuredCv?.contact;
+  const contact = {
+    email: structuredContact?.email?.trim() || extractedContact.email,
+    phone: structuredContact?.phone?.trim() || extractedContact.phone,
+    website: extractedContact.website,
+    location: extractedContact.location,
+  };
+  const displayName = structuredContact?.fullName?.trim() || args.title;
   const safeEmail = escapeHtml(contact.email ?? "Non renseigné");
   const safePhone = escapeHtml(contact.phone ?? "Non renseigné");
   const additionalSection = blocks.additionalBlock
@@ -947,7 +955,7 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
     : "";
 
   const hydrated = template
-    .replaceAll("{{FULL_NAME}}", escapeHtml(args.title))
+    .replaceAll("{{FULL_NAME}}", escapeHtml(displayName))
     .replaceAll("{{CONTACT_LINE}}", renderContactLine(contact))
     .replaceAll("{{EMAIL}}", safeEmail)
     .replaceAll("{{PHONE}}", safePhone)
