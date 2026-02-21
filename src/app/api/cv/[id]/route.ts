@@ -11,12 +11,22 @@ const titleSchema = z.object({
 
 const structuredSchema = z.object({
   structuredCv: z.object({
+    contact: z.object({
+      fullName: z.string().default(""),
+      email: z.string().default(""),
+      phone: z.string().default(""),
+    }).default({
+      fullName: "",
+      email: "",
+      phone: "",
+    }),
     summary: z.string().default(""),
     experiences: z.array(
       z.object({
         title: z.string(),
         company: z.string().default(""),
         date: z.string().default(""),
+        location: z.string().default(""),
         bullets: z.array(z.string()).default([]),
       }),
     ).default([]),

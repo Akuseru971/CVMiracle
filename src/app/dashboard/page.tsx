@@ -84,6 +84,13 @@ export default function DashboardPage() {
   const [, setExperienceSummaries] = useState<string[]>([]);
   const [activeExperienceIndex, setActiveExperienceIndex] = useState(0);
   const [carouselDirection, setCarouselDirection] = useState<1 | -1>(1);
+  const [liveEditorOpen, setLiveEditorOpen] = useState(false);
+  const [liveSessionKey, setLiveSessionKey] = useState("");
+  const [liveEditedText, setLiveEditedText] = useState("");
+  const [livePreviewUrl, setLivePreviewUrl] = useState<string | null>(null);
+  const [liveLoadingInit, setLiveLoadingInit] = useState(false);
+  const [liveRendering, setLiveRendering] = useState(false);
+  const [liveError, setLiveError] = useState("");
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -116,6 +123,76 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [router]);
+
+  function revokeLivePreviewUrl(url: string | null) {
+    if (!url) return;
+    URL.revokeObjectURL(url);
+  }
+
+  function replaceLivePreviewUrl(nextUrl: string | null) {
+    setLivePreviewUrl((previous) => {
+      if (previous && previous !== nextUrl) {
+        URL.revokeObjectURL(previous);
+      }
+      return nextUrl;
+    });
+  }
+
+  async function openLivePdfEditor() {
+    if (!file) {
+      setError("Ajoute d'abord un CV PDF.");
+      return;
+    }
+
+    const lowerName = file.name.toLowerCase();
+    const isPdf = file.type.includes("pdf") || lowerName.endsWith(".pdf");
+    if (!isPdf) {
+      setError("Le mode live est disponible uniquement pour un PDF.");
+      return;
+    }
+
+    setLiveEditorOpen(true);
+    setLiveError("");
+    setLiveLoadingInit(true);
+    setLiveSessionKey("");
+    setLiveEditedText("");
+    replaceLivePreviewUrl(URL.createObjectURL(file));
+
+    const formData = new FormData();
+    formData.append("action", "init");
+    formData.append("cvFile", file);
+
+    try {
+      const res = await fetch("/api/cv/live-preview", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setLiveError(data.error ?? "Impossible d'initialiser l'éditeur live.");
+        return;
+      }
+
+      setLiveSessionKey(data.sessionKey ?? "");
+      setLiveEditedText(data.sourceText ?? "");
+    } catch {
+      setLiveError("Connexion instable pendant l'initialisation live.");
+    } finally {
+      setLiveLoadingInit(false);
+    }
+  }
+
+  function closeLivePdfEditor() {
+    setLiveEditorOpen(false);
+    setLiveSessionKey("");
+    setLiveEditedText("");
+    setLiveError("");
+    setLiveLoadingInit(false);
+    setLiveRendering(false);
+    revokeLivePreviewUrl(livePreviewUrl);
+    setLivePreviewUrl(null);
+  }
 
   async function prepareHybridStep(e: React.FormEvent) {
     e.preventDefault();
@@ -189,6 +266,70 @@ export default function DashboardPage() {
       setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
   }
+
+  useEffect(() => {
+    if (!liveEditorOpen || !liveSessionKey || !liveEditedText.trim() || liveLoadingInit) {
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      setLiveRendering(true);
+      const formData = new FormData();
+      formData.append("action", "preview");
+      formData.append("sessionKey", liveSessionKey);
+      formData.append("editedText", liveEditedText);
+
+      try {
+        const res = await fetch("/api/cv/live-preview", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setLiveError(data.error ?? "Erreur de rendu live.");
+          return;
+        }
+
+        if (data.unchanged || !data.pdfBase64) {
+          setLiveError("");
+          return;
+        }
+
+        const binary = atob(data.pdfBase64 as string);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        replaceLivePreviewUrl(URL.createObjectURL(blob));
+        setLiveError("");
+      } catch {
+        if (!cancelled) {
+          setLiveError("Erreur réseau pendant la mise à jour live.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLiveRendering(false);
+        }
+      }
+    }, 900);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [liveEditorOpen, liveSessionKey, liveEditedText, liveLoadingInit]);
+
+  useEffect(() => {
+    return () => {
+      revokeLivePreviewUrl(livePreviewUrl);
+    };
+  }, [livePreviewUrl]);
 
   useEffect(() => {
     if (!structuredCv) return;
@@ -419,6 +560,16 @@ export default function DashboardPage() {
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 required
               />
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={openLivePdfEditor}
+                disabled={!file || liveLoadingInit}
+              >
+                {liveLoadingInit ? "Préparation éditeur live..." : "Ouvrir l'éditeur PDF live"}
+              </Button>
 
               {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
@@ -702,6 +853,53 @@ export default function DashboardPage() {
                 <Button className="w-full" disabled={loading} onClick={validateHybridStep}>
                   {loading ? "Génération finale en cours..." : "Valider et générer le CV"}
                 </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {liveEditorOpen ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
+            <div className="max-h-[92vh] w-full max-w-6xl overflow-auto rounded-2xl bg-white p-5 text-slate-900 dark:bg-slate-950 dark:text-white">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold">Éditeur PDF live</h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-300">
+                    Modifie le texte à droite: le PDF se met à jour automatiquement (debounce ~1s).
+                  </p>
+                </div>
+                <Button type="button" variant="secondary" onClick={closeLivePdfEditor}>
+                  Fermer
+                </Button>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900">
+                  {livePreviewUrl ? (
+                    <iframe
+                      title="Aperçu PDF live"
+                      src={livePreviewUrl}
+                      className="h-[72vh] w-full rounded-lg border border-slate-200 bg-white dark:border-slate-700"
+                    />
+                  ) : (
+                    <p className="p-3 text-sm text-slate-500">Prévisualisation en chargement...</p>
+                  )}
+                </div>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900">
+                  <p className="mb-2 text-xs text-slate-500 dark:text-slate-300">
+                    Texte éditable extrait du CV d&apos;origine
+                  </p>
+                  <textarea
+                    value={liveEditedText}
+                    onChange={(event) => setLiveEditedText(event.target.value)}
+                    className="h-[64vh] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950"
+                  />
+                  <p className="mt-2 text-xs text-slate-500 dark:text-slate-300">
+                    {liveRendering ? "Mise à jour du PDF en cours..." : "PDF synchronisé."}
+                  </p>
+                  {liveError ? <p className="mt-1 text-xs text-red-500">{liveError}</p> : null}
+                </div>
               </div>
             </div>
           </div>
