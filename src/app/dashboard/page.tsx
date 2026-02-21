@@ -76,6 +76,7 @@ export default function DashboardPage() {
   const [hybridConfidence, setHybridConfidence] = useState<Record<string, number> | null>(null);
   const [overlapWarnings, setOverlapWarnings] = useState<string[]>([]);
   const [suggestedImprovements, setSuggestedImprovements] = useState<string[]>([]);
+  const [experienceSummaries, setExperienceSummaries] = useState<string[]>([]);
 
   const creditsLabel = useMemo(() => "Illimité (bêta)", []);
 
@@ -141,6 +142,7 @@ export default function DashboardPage() {
         setHybridConfidence(null);
         setOverlapWarnings([]);
         setSuggestedImprovements([]);
+        setExperienceSummaries([]);
         setHybridModalOpen(true);
         setError(data.error ?? "Extraction incomplète: complète les expériences dans la pop-up.");
         return;
@@ -156,6 +158,7 @@ export default function DashboardPage() {
       setHybridConfidence(data.confidence ?? null);
       setOverlapWarnings(data.overlapWarnings ?? []);
       setSuggestedImprovements(data.suggestedImprovements ?? []);
+      setExperienceSummaries(data.experienceSummaries ?? []);
       setHybridModalOpen(true);
     } catch {
       setPreparingStructure(false);
@@ -164,6 +167,7 @@ export default function DashboardPage() {
       setHybridConfidence(null);
       setOverlapWarnings([]);
       setSuggestedImprovements([]);
+      setExperienceSummaries([]);
       setHybridModalOpen(true);
       setError("Connexion instable: complète les expériences dans la pop-up puis valide.");
     }
@@ -244,6 +248,7 @@ export default function DashboardPage() {
     setHybridConfidence(null);
     setOverlapWarnings([]);
     setSuggestedImprovements([]);
+    setExperienceSummaries([]);
     setPreview(null);
     setHybridValidated(false);
     setHybridModalOpen(true);
@@ -464,6 +469,18 @@ export default function DashboardPage() {
               <div className="mt-4 space-y-3">
                 <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs dark:border-slate-700 dark:bg-slate-900">
                   <p className="mb-2 font-semibold">Résultat lu par l&apos;IA</p>
+                  {experienceSummaries.length ? (
+                    <div className="mb-3 rounded border border-indigo-200 bg-indigo-50 p-2 dark:border-indigo-900 dark:bg-indigo-950/30">
+                      <p className="mb-1 font-semibold text-indigo-700 dark:text-indigo-300">
+                        Résumé clair de chaque expérience
+                      </p>
+                      <ul className="list-disc pl-5 text-slate-700 dark:text-slate-200">
+                        {experienceSummaries.map((summary, index) => (
+                          <li key={`summary-${index}`}>{summary}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : null}
                   <p className="mb-2 text-slate-600 dark:text-slate-300">
                     Résumé: {structuredCv.summary || "Non détecté"}
                   </p>
