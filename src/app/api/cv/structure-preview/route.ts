@@ -35,23 +35,14 @@ function applyExperienceSummaries(base: HybridCvForm, summaries: string[] | null
     const summary = summaries?.[index]?.trim();
     if (!summary) return entry;
 
-    if (!entry.achievements.length) {
-      return {
-        ...entry,
-        achievements: [summary],
-      };
+    if (entry.achievements.length) {
+      return entry;
     }
 
-    const alreadyPresent = entry.achievements.some(
-      (item) => item.toLowerCase() === summary.toLowerCase(),
-    );
-
-    return alreadyPresent
-      ? entry
-      : {
-          ...entry,
-          achievements: [summary, ...entry.achievements].slice(0, 6),
-        };
+    return {
+      ...entry,
+      achievements: [summary],
+    };
   });
 
   return {
