@@ -376,3 +376,45 @@ export async function extractExperienceSummariesWithAI(args: {
 
   return summaries.length ? summaries : null;
 }
+
+export async function adaptStructuredReadWithSummariesAI(args: {
+  cvText: string;
+  jobOfferText: string;
+  heuristicStructured: StructuredCv;
+  experienceSummaries: string[];
+}): Promise<StructuredCv | null> {
+  if (!process.env.OPENAI_API_KEY) {
+    return null;
+  }
+
+  const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+  const completion = await client.chat.completions.create({
+    model,
+    response_format: { type: "json_object" },
+    temperature: 0,
+    messages: [
+      {
+        role: "system",
+        content:
+          "You refine CV structured reading for coherence. Use the provided clear experience summaries to correct role/company/location/date mapping. Keep only facts present in resume text or summaries. Never invent information. Return JSON only.",
+      },
+      {
+        role: "user",
+        content: `Raw CV text:\n${args.cvText.slice(0, 18000)}\n\nJob offer context:\n${args.jobOfferText.slice(0, 5000)}\n\nCurrent heuristic structured read:\n${JSON.stringify(args.heuristicStructured)}\n\nClear experience summaries:\n${args.experienceSummaries.join("\n")}\n\nReturn JSON only with shape:\n{ summary, experiences:[{title,company,date,location,bullets[]}], education:[], skills:[], languages:[], additional:[] }`,
+      },
+    ],
+  });
+
+  const raw = completion.choices[0]?.message?.content;
+  if (!raw) {
+    return null;
+  }
+
+  const parsed = structuredCvSchema.safeParse(JSON.parse(raw));
+  if (!parsed.success) {
+    return null;
+  }
+
+  return parsed.data as StructuredCv;
+}

@@ -8,7 +8,10 @@ import {
   parseStructuredCvFromText,
 } from "@/lib/cv-structure";
 import { checkRateLimit } from "@/lib/rate-limit";
-import { extractExperienceSummariesWithAI } from "@/lib/openai";
+import {
+  adaptStructuredReadWithSummariesAI,
+  extractExperienceSummariesWithAI,
+} from "@/lib/openai";
 import {
   computeHybridConfidence,
   detectDateOverlaps,
@@ -105,7 +108,7 @@ export async function POST(request: Request) {
   }
 
   const heuristicStructured = parseStructuredCvFromText(parsedCv.text);
-  const heuristicHybrid = mapStructuredToHybrid(heuristicStructured);
+  let refinedStructured = heuristicStructured;
 
   let experienceSummaries: string[] | null = null;
   try {
@@ -116,6 +119,24 @@ export async function POST(request: Request) {
   } catch {
     experienceSummaries = null;
   }
+
+  if (experienceSummaries?.length) {
+    try {
+      const adapted = await adaptStructuredReadWithSummariesAI({
+        cvText: parsedCv.text,
+        jobOfferText,
+        heuristicStructured,
+        experienceSummaries,
+      });
+      if (adapted) {
+        refinedStructured = adapted;
+      }
+    } catch {
+      refinedStructured = heuristicStructured;
+    }
+  }
+
+  const heuristicHybrid = mapStructuredToHybrid(refinedStructured);
 
   const hybridForm = applyExperienceSummaries(heuristicHybrid, experienceSummaries);
   const confidence = computeHybridConfidence(hybridForm);
