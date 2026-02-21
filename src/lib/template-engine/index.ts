@@ -351,62 +351,75 @@ function buildTemplate(choice: TemplateChoice) {
 <head>
 <meta charset="UTF-8">
 <style>
-body{
-  font-family:'Inter',sans-serif;
-  margin:50px;
-  color:#1f2937;
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  margin: 34px 42px;
+  color: #0f172a;
+  line-height: 1.45;
 }
-.header{
-  margin-bottom:25px;
+.header {
+  border-top: 6px solid #0f172a;
+  padding-top: 14px;
+  margin-bottom: 20px;
 }
-.name{
-  font-size:32px;
-  font-weight:700;
-  letter-spacing:0.5px;
+.name {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: 0.25px;
 }
-.contact{
-  font-size:11px;
-  color:#6b7280;
-  margin-top:4px;
+.contact {
+  margin-top: 6px;
+  color: #475569;
+  font-size: 11px;
 }
-.section{
-  margin-top:28px;
+.summary {
+  background: #f8fafc;
+  border-left: 3px solid #0f172a;
+  padding: 10px 12px;
+  margin: 12px 0 16px;
+  font-size: 11px;
 }
-.section-title{
-  font-size:13px;
-  font-weight:700;
-  text-transform:uppercase;
-  letter-spacing:1px;
-  color:#111827;
-  margin-bottom:10px;
+.section {
+  margin-top: 18px;
 }
-.job{
-  margin-bottom:16px;
+.section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 8px;
+  color: #0f172a;
+  font-weight: 800;
 }
-.job-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  font-size:12px;
-  font-weight:600;
+.job {
+  margin-bottom: 12px;
 }
-.job-info{
-  display:flex;
-  flex-direction:column;
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
 }
-.company{
-  font-size:11px;
-  font-weight:500;
-  color:#374151;
+.job-title {
+  font-size: 12px;
+  font-weight: 700;
 }
-.job-date{
-  font-size:10px;
-  color:#6b7280;
+.company {
+  font-size: 11px;
+  color: #334155;
+  font-weight: 500;
 }
-ul{
-  margin:6px 0 0 18px;
-  font-size:11px;
-  line-height:1.45;
+.job-date {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+}
+ul {
+  margin: 5px 0 0 16px;
+  padding: 0;
+  font-size: 10.8px;
+}
+li {
+  margin-bottom: 2px;
 }
 </style>
 </head>
@@ -415,6 +428,8 @@ ul{
 <div class="name">{{FULL_NAME}}</div>
 <div class="contact">{{CONTACT_LINE}}</div>
 </div>
+
+{{SUMMARY_SECTION}}
 
 <div class="section">
 <div class="section-title">Professional Experience</div>
@@ -445,66 +460,97 @@ ul{
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Inter;margin:0;}
-.wrapper{display:flex;max-width:850px;margin:auto;}
-.sidebar{
-  width:32%;
-  background:#111827;
-  color:white;
-  padding:40px 25px;
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  color: #0f172a;
 }
-.sidebar .name{
-  font-size:26px;
-  font-weight:700;
+.wrapper {
+  display: grid;
+  grid-template-columns: 34% 66%;
+  min-height: 100vh;
 }
-.sidebar p{
-  font-size:11px;
-  margin-top:6px;
-  color:#d1d5db;
+.sidebar {
+  background: linear-gradient(180deg, #0b1220 0%, #1e293b 100%);
+  color: #e2e8f0;
+  padding: 34px 24px;
 }
-.sidebar h3{
-  font-size:12px;
-  margin-top:25px;
-  text-transform:uppercase;
-  letter-spacing:1px;
+.sidebar .name {
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.1;
 }
-.main{
-  width:68%;
-  padding:45px 40px;
+.sidebar .contact {
+  font-size: 10.5px;
+  color: #cbd5e1;
+  margin-top: 8px;
+  line-height: 1.45;
 }
-.section-title{
-  font-size:13px;
-  font-weight:700;
-  text-transform:uppercase;
-  margin-bottom:12px;
+.panel-title {
+  margin-top: 18px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  font-weight: 700;
+  color: #93c5fd;
 }
-.job{
-  margin-bottom:16px;
+.sidebar ul {
+  margin: 6px 0 0 14px;
+  padding: 0;
+  font-size: 10.5px;
+  line-height: 1.45;
 }
-.job-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  font-size:12px;
-  font-weight:600;
+.summary {
+  margin-top: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 10.5px;
+  color: #e2e8f0;
+  background: rgba(15, 23, 42, 0.35);
 }
-.job-info{
-  display:flex;
-  flex-direction:column;
+.main {
+  padding: 34px 30px;
+  background: #ffffff;
 }
-.company{
-  font-size:11px;
-  font-weight:500;
-  color:#d1d5db;
+.section {
+  margin-bottom: 14px;
 }
-.job-date{
-  font-size:10px;
-  color:#6b7280;
+.section-title {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 1.1px;
+  color: #1e3a8a;
+  margin-bottom: 7px;
+  font-weight: 800;
 }
-ul{
-  font-size:11px;
-  line-height:1.4;
-  margin-left:18px;
+.job {
+  margin-bottom: 12px;
+}
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+.job-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+.company {
+  font-size: 10.8px;
+  color: #334155;
+}
+.job-date {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+}
+.main ul {
+  margin: 4px 0 0 16px;
+  font-size: 10.8px;
+  line-height: 1.45;
+  padding: 0;
 }
 </style>
 </head>
@@ -512,19 +558,22 @@ ul{
 <div class="wrapper">
 <div class="sidebar">
 <div class="name">{{FULL_NAME}}</div>
-<p>{{CONTACT_LINE}}</p>
-<h3>Skills</h3>
+<p class="contact">{{CONTACT_LINE}}</p>
+{{SUMMARY_SECTION}}
+<div class="panel-title">Skills</div>
 {{SKILLS_BLOCK}}
+<div class="panel-title">Languages</div>
+{{LANGUAGES_BLOCK}}
 </div>
 <div class="main">
-<h3 class="section-title">Experience</h3>
-{{EXPERIENCE_BLOCK}}
-<h3 class="section-title">Education</h3>
-{{EDUCATION_BLOCK}}
-
-<h3 class="section-title">Languages</h3>
-{{LANGUAGES_BLOCK}}
-
+<div class="section">
+  <div class="section-title">Professional Experience</div>
+  {{EXPERIENCE_BLOCK}}
+</div>
+<div class="section">
+  <div class="section-title">Education</div>
+  {{EDUCATION_BLOCK}}
+</div>
 {{ADDITIONAL_SECTION}}
 </div>
 </div>
@@ -535,57 +584,66 @@ ul{
 <head>
 <meta charset="UTF-8">
 <style>
-body{
-  font-family:Arial;
-  margin:40px;
-  color:#000;
+body {
+  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+  margin: 34px 40px;
+  color: #000;
+  line-height: 1.42;
 }
-h1{
-  font-size:28px;
-  margin-bottom:6px;
+h1 {
+  font-size: 28px;
+  margin: 0 0 6px;
 }
-.contact{
-  font-size:11px;
-  margin-bottom:20px;
+.contact {
+  font-size: 10.5px;
+  margin: 0 0 14px;
 }
-h2{
-  font-size:12px;
-  font-weight:700;
-  margin-top:20px;
-  border-bottom:1px solid #000;
-  padding-bottom:4px;
+.summary {
+  font-size: 10.8px;
+  margin-bottom: 10px;
 }
-.job-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  font-size:11px;
-  font-weight:600;
+h2 {
+  font-size: 11.5px;
+  font-weight: 700;
+  margin: 14px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  border-bottom: 1px solid #000;
+  padding-bottom: 3px;
 }
-.job-info{
-  display:flex;
-  flex-direction:column;
+.job {
+  margin-bottom: 8px;
 }
-.company{
-  font-size:11px;
-  font-weight:500;
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
 }
-.job-date{
-  font-size:10px;
+.job-title {
+  font-size: 11px;
+  font-weight: 700;
 }
-ul{
-  font-size:10.8px;
-  line-height:1.4;
-  margin-left:18px;
+.company {
+  font-size: 10.5px;
 }
+.job-date {
+  font-size: 10px;
+  white-space: nowrap;
+}
+ul {
+  margin: 4px 0 0 15px;
+  padding: 0;
+  font-size: 10.5px;
+}
+li { margin-bottom: 1px; }
 </style>
 </head>
 <body>
 <h1>{{FULL_NAME}}</h1>
 <p class="contact">{{CONTACT_LINE}}</p>
 
-<h2>Professional Summary</h2>
-<p>{{SUMMARY}}</p>
+{{SUMMARY_SECTION}}
 
 <h2>Experience</h2>
 {{EXPERIENCE_BLOCK}}
@@ -607,56 +665,72 @@ ul{
 <head>
 <meta charset="UTF-8">
 <style>
-body{font-family:Inter;margin:0;color:#111;}
-.top{
-  background:#f3f4f6;
-  padding:35px 50px;
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  color: #111827;
 }
-.name{
-  font-size:30px;
-  font-weight:700;
+.top {
+  background: linear-gradient(90deg, #e5e7eb 0%, #f8fafc 100%);
+  padding: 28px 44px 24px;
+  border-bottom: 1px solid #d1d5db;
 }
-.contact{
-  font-size:11px;
-  margin-top:6px;
-  color:#4b5563;
+.name {
+  font-size: 30px;
+  font-weight: 800;
 }
-.content{
-  padding:40px 50px;
+.contact {
+  font-size: 10.8px;
+  color: #4b5563;
+  margin-top: 6px;
 }
-.section-title{
-  font-size:13px;
-  text-transform:uppercase;
-  font-weight:700;
-  margin-top:25px;
+.summary {
+  margin-top: 10px;
+  max-width: 760px;
+  font-size: 11px;
+  color: #374151;
 }
-.job{
-  margin-bottom:16px;
+.content {
+  padding: 26px 44px 32px;
 }
-.job-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  font-size:12px;
-  font-weight:600;
+.section-title {
+  margin-top: 14px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 800;
+  color: #1f2937;
 }
-.job-info{
-  display:flex;
-  flex-direction:column;
+.job {
+  margin-bottom: 11px;
+  padding-left: 10px;
+  border-left: 2px solid #d1d5db;
 }
-.company{
-  font-size:11px;
-  font-weight:500;
-  color:#374151;
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
 }
-.job-date{
-  font-size:10px;
-  color:#6b7280;
+.job-title {
+  font-size: 11.8px;
+  font-weight: 700;
 }
-ul{
-  font-size:11px;
-  margin-left:18px;
-  line-height:1.45;
+.company {
+  font-size: 10.7px;
+  color: #4b5563;
+}
+.job-date {
+  font-size: 10px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+ul {
+  margin: 5px 0 0 15px;
+  padding: 0;
+  font-size: 10.7px;
+  line-height: 1.45;
 }
 </style>
 </head>
@@ -664,6 +738,7 @@ ul{
 <div class="top">
 <div class="name">{{FULL_NAME}}</div>
 <div class="contact">{{CONTACT_LINE}}</div>
+{{SUMMARY_SECTION}}
 </div>
 
 <div class="content">
@@ -688,79 +763,109 @@ ul{
 <head>
 <meta charset="UTF-8">
 <style>
-body{
-  font-family:Inter;
-  margin:45px;
-  color:#1e293b;
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  margin: 0;
+  color: #1e293b;
 }
-.name{
-  font-size:32px;
-  font-weight:700;
+.page {
+  padding: 30px 36px;
 }
-.line{
-  height:4px;
-  width:60px;
-  background:#0f172a;
-  margin:10px 0 20px 0;
+.top {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  align-items: end;
 }
-.contact{
-  font-size:11px;
-  color:#475569;
+.name {
+  font-size: 31px;
+  font-weight: 800;
 }
-.section-title{
-  font-size:13px;
-  font-weight:700;
-  margin-top:25px;
-  text-transform:uppercase;
+.contact {
+  font-size: 10.8px;
+  color: #475569;
+  text-align: right;
 }
-.job{
-  margin-bottom:16px;
+.line {
+  height: 3px;
+  width: 100%;
+  background: linear-gradient(90deg, #0f172a 0%, #2563eb 55%, #0ea5e9 100%);
+  margin: 12px 0 14px;
 }
-.job-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:baseline;
-  font-size:12px;
-  font-weight:600;
+.summary {
+  border: 1px solid #dbeafe;
+  background: #f8fbff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 10.9px;
 }
-.job-info{
-  display:flex;
-  flex-direction:column;
+.section-title {
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 15px;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.9px;
+  color: #1d4ed8;
 }
-.company{
-  font-size:11px;
-  font-weight:500;
-  color:#475569;
+.job {
+  margin-bottom: 10px;
+  border-bottom: 1px dashed #cbd5e1;
+  padding-bottom: 7px;
 }
-.job-date{
-  font-size:10px;
-  color:#6b7280;
+.job:last-child {
+  border-bottom: none;
 }
-ul{
-  font-size:11px;
-  margin-left:18px;
-  line-height:1.45;
+.job-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+.job-title {
+  font-size: 11.8px;
+  font-weight: 700;
+}
+.company {
+  font-size: 10.8px;
+  color: #334155;
+}
+.job-date {
+  font-size: 10px;
+  color: #64748b;
+  white-space: nowrap;
+}
+ul {
+  font-size: 10.7px;
+  margin: 4px 0 0 16px;
+  padding: 0;
+  line-height: 1.45;
 }
 </style>
 </head>
 <body>
-<div class="name">{{FULL_NAME}}</div>
-<div class="contact">{{CONTACT_LINE}}</div>
-<div class="line"></div>
+<div class="page">
+  <div class="top">
+    <div class="name">{{FULL_NAME}}</div>
+    <div class="contact">{{CONTACT_LINE}}</div>
+  </div>
+  <div class="line"></div>
+  {{SUMMARY_SECTION}}
 
-<div class="section-title">Experience</div>
-{{EXPERIENCE_BLOCK}}
+  <div class="section-title">Experience</div>
+  {{EXPERIENCE_BLOCK}}
 
-<div class="section-title">Education</div>
-{{EDUCATION_BLOCK}}
+  <div class="section-title">Education</div>
+  {{EDUCATION_BLOCK}}
 
-<div class="section-title">Skills</div>
-{{SKILLS_BLOCK}}
+  <div class="section-title">Skills</div>
+  {{SKILLS_BLOCK}}
 
-<div class="section-title">Languages</div>
-{{LANGUAGES_BLOCK}}
+  <div class="section-title">Languages</div>
+  {{LANGUAGES_BLOCK}}
 
-{{ADDITIONAL_SECTION}}
+  {{ADDITIONAL_SECTION}}
+</div>
 </body>
 </html>`,
   };
@@ -792,16 +897,14 @@ export function buildIntelligentResumeHtml(args: BuildArgs): BuildResult {
     ? `<div class="section-title">Additional</div>${blocks.additionalBlock}`
     : "";
   const summarySection = blocks.summary
-    ? `<h2>Professional Summary</h2>
-<p>${blocks.summary}</p>`
+    ? `<div class="summary">${blocks.summary}</div>`
     : "";
 
   const hydrated = template
     .replaceAll("{{FULL_NAME}}", escapeHtml(args.title))
     .replaceAll("{{CONTACT_LINE}}", renderContactLine(contact))
     .replaceAll("{{SUMMARY}}", blocks.summary)
-    .replaceAll("<h2>Professional Summary</h2>\n<p>{{SUMMARY}}</p>", summarySection)
-    .replaceAll("<h2>Professional Summary</h2>\r\n<p>{{SUMMARY}}</p>", summarySection)
+    .replaceAll("{{SUMMARY_SECTION}}", summarySection)
     .replaceAll("{{EXPERIENCE_BLOCK}}", blocks.experienceBlock)
     .replaceAll("{{EDUCATION_BLOCK}}", blocks.educationBlock)
     .replaceAll("{{SKILLS_BLOCK}}", blocks.skillsBlock)
