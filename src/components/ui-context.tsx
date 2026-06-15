@@ -2,13 +2,19 @@
 
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
 
+export type ActiveLayer = {
+  kind: "category" | "series";
+  id: string;
+} | null;
+
 type UIContextValue = {
   searchOpen: boolean;
   openSearch: () => void;
   closeSearch: () => void;
-  activeCategory: string | null;
+  activeLayer: ActiveLayer;
   openCategory: (id: string) => void;
-  closeCategory: () => void;
+  openSeries: (id: string) => void;
+  closeLayer: () => void;
   cartCount: number;
   addToCart: (label: string) => void;
   toast: string | null;
@@ -18,7 +24,7 @@ const UIContext = createContext<UIContextValue | null>(null);
 
 export function UIProvider({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [activeLayer, setActiveLayer] = useState<ActiveLayer>(null);
   const [cartCount, setCartCount] = useState(0);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -38,13 +44,24 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
     lockBody(false);
   }, [lockBody]);
 
-  const openCategory = useCallback((id: string) => {
-    setActiveCategory(id);
-    lockBody(true);
-  }, [lockBody]);
+  const openCategory = useCallback(
+    (id: string) => {
+      setActiveLayer({ kind: "category", id });
+      lockBody(true);
+    },
+    [lockBody],
+  );
 
-  const closeCategory = useCallback(() => {
-    setActiveCategory(null);
+  const openSeries = useCallback(
+    (id: string) => {
+      setActiveLayer({ kind: "series", id });
+      lockBody(true);
+    },
+    [lockBody],
+  );
+
+  const closeLayer = useCallback(() => {
+    setActiveLayer(null);
     lockBody(false);
   }, [lockBody]);
 
@@ -59,14 +76,26 @@ export function UIProvider({ children }: { children: React.ReactNode }) {
       searchOpen,
       openSearch,
       closeSearch,
-      activeCategory,
+      activeLayer,
       openCategory,
-      closeCategory,
+      openSeries,
+      closeLayer,
       cartCount,
       addToCart,
       toast,
     }),
-    [searchOpen, openSearch, closeSearch, activeCategory, openCategory, closeCategory, cartCount, addToCart, toast],
+    [
+      searchOpen,
+      openSearch,
+      closeSearch,
+      activeLayer,
+      openCategory,
+      openSeries,
+      closeLayer,
+      cartCount,
+      addToCart,
+      toast,
+    ],
   );
 
   return <UIContext.Provider value={value}>{children}</UIContext.Provider>;

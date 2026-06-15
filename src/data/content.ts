@@ -25,6 +25,31 @@ export type Category = {
   subcategories: string[];
 };
 
+export type BrowseItem = {
+  id: string;
+  labelJa: string;
+  subtitleJa: string;
+  image: string;
+};
+
+export type SeriesCollection = {
+  id: string;
+  name: string;
+  subtitleJa: string;
+  image: string;
+  subcategories: string[];
+};
+
+export type LayerDetail = {
+  id: string;
+  kind: "category" | "series";
+  nameLatin?: string;
+  labelJa: string;
+  subtitleJa: string;
+  image: string;
+  subcategories: string[];
+};
+
 export type ProductCategory =
   | "frypan"
   | "casserole"
@@ -182,6 +207,285 @@ export const categories: Category[] = [
     ],
   },
 ];
+
+/** Homepage category browse grid — inspired by two-column mobile category UX. */
+export const browseCategories: BrowseItem[] = [
+  {
+    id: "pots",
+    labelJa: "鍋",
+    subtitleJa: "キャセロール・マルチポット",
+    image: "/images/categories/pots.jpg",
+  },
+  {
+    id: "pressure",
+    labelJa: "圧力鍋",
+    subtitleJa: "パーフェクトプラス・フュージョンテック",
+    image: "/images/brand/perfection.jpg",
+  },
+  {
+    id: "pans",
+    labelJa: "フライパン",
+    subtitleJa: "24cm・26cm・深型",
+    image: "/images/categories/pans.jpg",
+  },
+  {
+    id: "knives",
+    labelJa: "包丁&ナイフ",
+    subtitleJa: "三徳包丁・ナイフセット",
+    image: "/images/categories/knives.jpg",
+  },
+  {
+    id: "cutlery",
+    labelJa: "カトラリー",
+    subtitleJa: "スプーン・フォーク・セット",
+    image: "/images/categories/cutlery.jpg",
+  },
+  {
+    id: "helpers",
+    labelJa: "キッチンツール",
+    subtitleJa: "レードル・ターナー・ツールセット",
+    image: "/images/categories/helpers.jpg",
+  },
+  {
+    id: "drinkware",
+    labelJa: "ドリンクウェア",
+    subtitleJa: "タンブラー・ボトル",
+    image: "/images/categories/coffee.jpg",
+  },
+  {
+    id: "storage",
+    labelJa: "保存容器",
+    subtitleJa: "フードコンテナ・ガラス保存容器",
+    image: "/images/products/product-4.jpg",
+  },
+  {
+    id: "tableware",
+    labelJa: "テーブルアクセサリー",
+    subtitleJa: "サービング・テーブルウェア",
+    image: "/images/lifestyle/jp-2.jpg",
+  },
+  {
+    id: "accessories",
+    labelJa: "アクセサリー",
+    subtitleJa: "交換部品・消耗品",
+    image: "/images/brand/iconic.jpg",
+  },
+];
+
+/** WMF series / brand collections for the second browse tab. */
+export const seriesCollections: SeriesCollection[] = [
+  {
+    id: "fusiontec-mineral",
+    name: "Fusiontec Mineral",
+    subtitleJa: "天然鉱石コーティングのフラッグシップ",
+    image: "/images/brand/fusiontec.jpg",
+    subcategories: ["フライパン", "キャセロール", "マルチポット", "ロースター", "ライスポット"],
+  },
+  {
+    id: "perfect-plus",
+    name: "Perfect Plus",
+    subtitleJa: "圧力調理の定番シリーズ",
+    image: "/images/brand/perfection.jpg",
+    subcategories: ["圧力鍋 3L", "圧力鍋 4.5L", "圧力鍋 6L", "専用パーツ"],
+  },
+  {
+    id: "profi-plus",
+    name: "Profi Plus",
+    subtitleJa: "プロ仕様のステンレス鍋",
+    image: "/images/products/product-2.jpg",
+    subcategories: ["ソースパン", "片手鍋", "両手鍋", "鍋セット"],
+  },
+  {
+    id: "grand-gourmet",
+    name: "Grand Gourmet",
+    subtitleJa: "本格派ステンレスフライパン",
+    image: "/images/products/product-10.jpg",
+    subcategories: ["フライパン 24cm", "フライパン 28cm", "深型フライパン"],
+  },
+  {
+    id: "cromargan",
+    name: "Cromargan",
+    subtitleJa: "WMF独自のステンレス鋼",
+    image: "/images/brand/cromargan.jpg",
+    subcategories: ["鍋", "フライパン", "カトラリー", "保存容器"],
+  },
+  {
+    id: "function-4",
+    name: "Function 4",
+    subtitleJa: "4層構造の高機能フライパン",
+    image: "/images/products/product-3.jpg",
+    subcategories: ["フライパン 20cm", "フライパン 24cm", "フライパン 28cm"],
+  },
+  {
+    id: "gourmet-plus",
+    name: "Gourmet Plus",
+    subtitleJa: "毎日使える上質な調理器具",
+    image: "/images/products/product-5.jpg",
+    subcategories: ["キャセロール", "ソースパン", "両手鍋"],
+  },
+  {
+    id: "kineo",
+    name: "Kineo",
+    subtitleJa: "モダンなデザインの調理ツール",
+    image: "/images/brand/damasteel.jpg",
+    subcategories: ["ターナー", "お玉", "トング", "ツールセット"],
+  },
+  {
+    id: "kult-x",
+    name: "Kult X",
+    subtitleJa: "洗練されたキッチンナイフ",
+    image: "/images/categories/knives.jpg",
+    subcategories: ["シェフナイフ", "三徳包丁", "ペティナイフ", "ナイフセット"],
+  },
+  {
+    id: "lono",
+    name: "Lono",
+    subtitleJa: "上質なドリンク＆デザイン家電",
+    image: "/images/categories/coffee.jpg",
+    subcategories: ["電気ケトル", "トースター", "タンブラー", "ボトル"],
+  },
+];
+
+const layerDetailsMap: Record<string, LayerDetail> = {
+  pots: {
+    id: "pots",
+    kind: "category",
+    nameLatin: "POTS",
+    labelJa: "鍋",
+    subtitleJa: "美しさと使いやすさを追求した、WMFの鍋シリーズ",
+    image: "/images/categories/pots.jpg",
+    subcategories: ["キャセロール", "マルチポット", "両手鍋", "片手鍋", "ソースパン", "ロースター"],
+  },
+  pressure: {
+    id: "pressure",
+    kind: "category",
+    nameLatin: "PRESSURE COOKERS",
+    labelJa: "圧力鍋",
+    subtitleJa: "時短調理と本格仕上がりを両立する、WMFの圧力鍋",
+    image: "/images/brand/perfection.jpg",
+    subcategories: ["パーフェクトプラス", "フュージョンテック", "専用パーツ", "圧力鍋 3L", "圧力鍋 4.5L"],
+  },
+  pans: {
+    id: "pans",
+    kind: "category",
+    nameLatin: "PANS",
+    labelJa: "フライパン",
+    subtitleJa: "毎日の料理に寄り添う、上質な一枚",
+    image: "/images/categories/pans.jpg",
+    subcategories: ["フライパン 20cm", "フライパン 24cm", "フライパン 26cm", "フライパン 28cm", "深型フライパン"],
+  },
+  knives: {
+    id: "knives",
+    kind: "category",
+    nameLatin: "KITCHEN KNIVES",
+    labelJa: "包丁&ナイフ",
+    subtitleJa: "鋭い切れ味、ドイツ最高レベルの品質",
+    image: "/images/categories/knives.jpg",
+    subcategories: ["三徳包丁", "シェフナイフ", "ペティナイフ", "ナイフセット", "包丁研ぎ"],
+  },
+  cutlery: {
+    id: "cutlery",
+    kind: "category",
+    nameLatin: "CUTLERY",
+    labelJa: "カトラリー",
+    subtitleJa: "際立った品質と使い心地の良さ",
+    image: "/images/categories/cutlery.jpg",
+    subcategories: ["カトラリーセット", "ディナーフォーク", "スプーン", "テーブルナイフ", "サービングカトラリー"],
+  },
+  helpers: {
+    id: "helpers",
+    kind: "category",
+    nameLatin: "KITCHEN HELPERS",
+    labelJa: "キッチンツール",
+    subtitleJa: "シンプルを究めた機能美",
+    image: "/images/categories/helpers.jpg",
+    subcategories: ["レードル", "ターナー", "トング", "計量ツール", "ツールセット"],
+  },
+  drinkware: {
+    id: "drinkware",
+    kind: "category",
+    nameLatin: "DRINKWARE",
+    labelJa: "ドリンクウェア",
+    subtitleJa: "日常に溶け込む、上質なドリンク体験",
+    image: "/images/categories/coffee.jpg",
+    subcategories: ["タンブラー", "ボトル", "マグ", "ワイングラス", "カラフェ"],
+  },
+  storage: {
+    id: "storage",
+    kind: "category",
+    nameLatin: "FOOD STORAGE",
+    labelJa: "保存容器",
+    subtitleJa: "鮮度を保ち、キッチンを美しく整える",
+    image: "/images/products/product-4.jpg",
+    subcategories: ["フードコンテナ", "ガラス保存容器", "ステンレス保存容器", "ランチボックス"],
+  },
+  tableware: {
+    id: "tableware",
+    kind: "category",
+    nameLatin: "TABLE ACCESSORIES",
+    labelJa: "テーブルアクセサリー",
+    subtitleJa: "食卓を彩る、上質なサービング",
+    image: "/images/lifestyle/jp-2.jpg",
+    subcategories: ["サービングボウル", "プレート", "トレー", "テーブルウェアセット"],
+  },
+  accessories: {
+    id: "accessories",
+    kind: "category",
+    nameLatin: "ACCESSORIES",
+    labelJa: "アクセサリー",
+    subtitleJa: "長く愛用するための交換部品と消耗品",
+    image: "/images/brand/iconic.jpg",
+    subcategories: ["交換部品", "消耗品", "専用パーツ", "お手入れ用品"],
+  },
+  coffee: {
+    id: "coffee",
+    kind: "category",
+    nameLatin: "COFFEE MACHINES",
+    labelJa: "コーヒーマシン",
+    subtitleJa: "一杯のために、ドイツの技術を",
+    image: "/images/categories/coffee.jpg",
+    subcategories: ["全自動コーヒーマシン", "ドリップマシン", "電気ケトル", "ミルクフォーマー"],
+  },
+  appliances: {
+    id: "appliances",
+    kind: "category",
+    nameLatin: "KITCHEN APPLIANCES",
+    labelJa: "キッチン家電",
+    subtitleJa: "効率と仕上がりを、両立する",
+    image: "/images/categories/appliances.jpg",
+    subcategories: ["トースター", "ブレンダー", "電気ケトル", "KITCHENminis", "ハンドブレンダー"],
+  },
+};
+
+seriesCollections.forEach((series) => {
+  layerDetailsMap[series.id] = {
+    id: series.id,
+    kind: "series",
+    nameLatin: series.name.toUpperCase(),
+    labelJa: series.name,
+    subtitleJa: series.subtitleJa,
+    image: series.image,
+    subcategories: series.subcategories,
+  };
+});
+
+export function getLayerDetail(id: string): LayerDetail | undefined {
+  const mapped = layerDetailsMap[id];
+  if (mapped) return mapped;
+
+  const fromCategories = categories.find((c) => c.id === id);
+  if (!fromCategories) return undefined;
+
+  return {
+    id: fromCategories.id,
+    kind: "category",
+    nameLatin: fromCategories.name,
+    labelJa: fromCategories.labelJa,
+    subtitleJa: fromCategories.subtitleJa,
+    image: fromCategories.image,
+    subcategories: fromCategories.subcategories,
+  };
+}
 
 // Best sellers — product names are the real WMF Japan ranking
 // (集計期間 2026年5月1日〜5月31日, shop.wmf.co.jp).
@@ -421,3 +725,37 @@ export const footerSections = [
     links: ["WMFについて", "ブランドストーリー", "ニュース", "採用情報"],
   },
 ];
+
+const layerProductKeywords: Record<string, string[]> = {
+  pots: ["ポット", "キャセロール", "ロースター", "ライス"],
+  pressure: ["圧力", "パーフェクト"],
+  pans: ["フライパン"],
+  knives: ["ナイフ", "包丁"],
+  cutlery: ["カトラリー"],
+  helpers: ["ツール", "ターナー"],
+  drinkware: ["ケトル", "タンブラー", "ボトル"],
+  storage: ["コンテナ", "保存"],
+  tableware: ["サービング", "プレート"],
+  accessories: ["パーツ", "部品"],
+  "fusiontec-mineral": ["フュージョンテック"],
+  "perfect-plus": ["パーフェクト", "圧力"],
+  "profi-plus": ["プロフィ"],
+  "grand-gourmet": ["グランドゴア"],
+  cromargan: ["Cromargan", "クロマーガン"],
+  "function-4": ["Function"],
+  "gourmet-plus": ["Gourmet"],
+  kineo: ["Kineo"],
+  "kult-x": ["Kult", "ナイフ", "包丁"],
+  lono: ["Lono", "ケトル"],
+};
+
+export function getBestSellersForLayer(id: string): Product[] {
+  const keywords = layerProductKeywords[id];
+  if (!keywords?.length) return bestSellers.slice(0, 4);
+
+  const matched = bestSellers.filter((product) =>
+    keywords.some((keyword) => product.name.includes(keyword)),
+  );
+
+  return (matched.length > 0 ? matched : bestSellers).slice(0, 4);
+}

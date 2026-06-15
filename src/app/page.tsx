@@ -1,6 +1,7 @@
 import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
 import { TasteMattersSection } from "@/components/TasteMattersSection";
+import { CategoryBrowseSection } from "@/components/CategoryBrowseSection";
 import { CampaignSlider } from "@/components/CampaignSlider";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { FusiontecStory } from "@/components/FusiontecStory";
@@ -15,6 +16,7 @@ export default function Home() {
     <AppShell>
       <HeroSlider />
       <TasteMattersSection />
+      <CategoryBrowseSection />
       <CampaignSlider />
       <ProductCarousel
         id="best-sellers"

@@ -18,7 +18,7 @@ export function Header() {
   }, []);
 
   const openCategories = () => {
-    document.getElementById("taste-matters")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("category-browse")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
