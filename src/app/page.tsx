@@ -2,7 +2,7 @@ import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
 import { TasteMattersSection } from "@/components/TasteMattersSection";
 import { CategoryBrowseSection } from "@/components/CategoryBrowseSection";
-import { CampaignSlider } from "@/components/CampaignSlider";
+import { FeatureSection } from "@/components/FeatureSection";
 import { ProductCarousel } from "@/components/ProductCarousel";
 import { FusiontecStory } from "@/components/FusiontecStory";
 import { ServiceCards } from "@/components/ServiceCards";
@@ -17,7 +17,7 @@ export default function Home() {
       <HeroSlider />
       <TasteMattersSection />
       <CategoryBrowseSection />
-      <CampaignSlider />
+      <FeatureSection />
       <ProductCarousel
         id="best-sellers"
         eyebrow="RANKING"

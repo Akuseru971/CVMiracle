@@ -592,31 +592,38 @@ export const newArrivals: Product[] = [
   },
 ];
 
-export const campaignSlides = [
+export const featureSlides = [
   {
-    id: "cmp-1",
-    image: "/images/campaign/kitchenminis.jpg",
-    eyebrow: "PREMIUM SALE",
-    title: "プレミアムセール開催中",
-    body: "対象商品が今だけ特別価格。公式ショップ限定の特典をお見逃しなく。",
-    cta: "セールを見る",
-    sale: true,
-  },
-  {
-    id: "cmp-2",
-    image: "/images/campaign/flavour.png",
-    eyebrow: "GIFT SELECTION",
-    title: "無料ギフトサービス",
-    body: "メッセージカードや包装を無料でご用意。大切な方への贈り物に。",
-    cta: "ギフトを見る",
-  },
-  {
-    id: "cmp-3",
-    image: "/images/campaign/castiron.png",
+    id: "feat-1",
+    image: "/images/brand/fusiontec.jpg",
     eyebrow: "FUSIONTEC MINERAL",
-    title: "天然鉱石から生まれた素材",
-    body: "美しさ、耐久性、使いやすさを兼ね備えたWMFを代表するシリーズ。",
+    title: "天然鉱石から生まれた、上質。",
+    body: "美しさ、耐久性、使いやすさを兼ね備えたWMFを代表するプレミアムシリーズ。",
     cta: "シリーズを見る",
+  },
+  {
+    id: "feat-2",
+    image: "/images/brand/perfection.jpg",
+    eyebrow: "PERFECT PLUS",
+    title: "圧力調理の定番シリーズ",
+    body: "時短調理と本格仕上がりを両立。毎日のキッチンを支える、WMFの圧力鍋。",
+    cta: "商品を見る",
+  },
+  {
+    id: "feat-3",
+    image: "/images/brand/cromargan.jpg",
+    eyebrow: "CROMArgAN",
+    title: "WMF独自のステンレス鋼",
+    body: "ドイツの技術が生み出す、美しい光沢と優れた耐久性。",
+    cta: "コレクションを見る",
+  },
+  {
+    id: "feat-4",
+    image: "/images/lifestyle/jp-1.jpg",
+    eyebrow: "SINCE 1853",
+    title: "1853年より続く、ドイツNo.1",
+    body: "キッチン＆テーブルウェアブランドとして、上質な道具を届け続けています。",
+    cta: "ブランドストーリー",
   },
 ];
 

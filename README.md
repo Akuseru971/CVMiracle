@@ -45,7 +45,7 @@ src/
     TasteMattersSection.tsx  # WMF Germany "TASTE MATTERS" category slider
     CategoryBrowseSection.tsx  # two-tab category/series browse grid (homepage)
     CategoryLayer.tsx     # layered slide-in category panel
-    CampaignSlider.tsx    # premium sale / campaign slider
+    FeatureSection.tsx    # editorial brand / series feature slider
     ProductCarousel.tsx   # reusable best sellers / new arrivals carousel
     FusiontecStory.tsx    # dark editorial brand block
     ServiceCards.tsx      # official-shop trust section
