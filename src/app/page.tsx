@@ -584,15 +584,6 @@ export default function Home() {
                       </p>
                     </div>
 
-                    <div className="relative mb-3" style={{ perspective: "1200px" }}>
-                      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-transparent to-black/5 dark:to-white/5" />
-                      <iframe
-                        src={buildPdfUrl(activePreviewTemplate, true)}
-                        title="Aperçu CV refabriqué"
-                        className="relative z-10 h-[460px] w-full rounded-xl border border-emerald-200 bg-white shadow-xl dark:border-emerald-900 dark:bg-slate-900"
-                      />
-                    </div>
-
                     <div className="mb-2 flex items-center justify-center gap-2">
                       <Button
                         variant="secondary"
@@ -618,7 +609,7 @@ export default function Home() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-5 gap-2" style={{ perspective: "1000px" }}>
+                    <div className="mb-3 grid grid-cols-5 gap-2" style={{ perspective: "1000px" }}>
                       {templateChoices.map((choice, index) => {
                         const offset = index - activePreviewIndex;
                         const normalized =
@@ -648,6 +639,15 @@ export default function Home() {
                           </button>
                         );
                       })}
+                    </div>
+
+                    <div className="relative mb-3" style={{ perspective: "1200px" }}>
+                      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-transparent to-black/5 dark:to-white/5" />
+                      <iframe
+                        src={buildPdfUrl(activePreviewTemplate, true)}
+                        title="Aperçu CV refabriqué"
+                        className="relative z-10 h-[460px] w-full rounded-xl border border-emerald-200 bg-white shadow-xl dark:border-emerald-900 dark:bg-slate-900"
+                      />
                     </div>
                   </div>
                 ) : null}
