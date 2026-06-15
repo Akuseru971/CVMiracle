@@ -8,7 +8,7 @@ import { ServiceCards } from "@/components/ServiceCards";
 import { RecipeSection } from "@/components/RecipeSection";
 import { NewsList } from "@/components/NewsList";
 import { MobileFooter } from "@/components/MobileFooter";
-import { bestSellers, newArrivals } from "@/data/content";
+import { bestSellers, bestSellerFilters, newArrivals } from "@/data/content";
 
 export default function Home() {
   return (
@@ -21,6 +21,7 @@ export default function Home() {
         title="ベストセラー"
         products={bestSellers}
         showRanking
+        filters={bestSellerFilters}
       />
       <FusiontecStory />
       <ProductCarousel

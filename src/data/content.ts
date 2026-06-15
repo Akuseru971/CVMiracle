@@ -25,6 +25,13 @@ export type Category = {
   subcategories: string[];
 };
 
+export type ProductCategory =
+  | "frypan"
+  | "casserole"
+  | "multipot"
+  | "roaster"
+  | "ricepot";
+
 export type Product = {
   id: string;
   name: string;
@@ -33,7 +40,18 @@ export type Product = {
   badge?: string;
   sale?: boolean;
   oldPrice?: number;
+  category?: ProductCategory;
+  rank?: number;
 };
+
+export const bestSellerFilters: { id: "all" | ProductCategory; label: string }[] = [
+  { id: "all", label: "すべて" },
+  { id: "frypan", label: "フライパン" },
+  { id: "casserole", label: "キャセロール" },
+  { id: "multipot", label: "マルチポット" },
+  { id: "roaster", label: "ロースター" },
+  { id: "ricepot", label: "ライスポット" },
+];
 
 export const heroSlides = [
   {
@@ -174,6 +192,8 @@ export const bestSellers: Product[] = [
     price: 16500,
     image: "/images/products/product-1.jpg",
     badge: "人気商品",
+    category: "multipot",
+    rank: 1,
   },
   {
     id: "bs-2",
@@ -181,6 +201,8 @@ export const bestSellers: Product[] = [
     price: 29700,
     image: "/images/products/product-2.jpg",
     badge: "公式ショップ限定",
+    category: "roaster",
+    rank: 2,
   },
   {
     id: "bs-3",
@@ -188,6 +210,8 @@ export const bestSellers: Product[] = [
     price: 19800,
     image: "/images/products/product-3.jpg",
     badge: "人気商品",
+    category: "frypan",
+    rank: 3,
   },
   {
     id: "bs-4",
@@ -195,12 +219,16 @@ export const bestSellers: Product[] = [
     price: 16500,
     image: "/images/products/product-4.jpg",
     badge: "人気商品",
+    category: "multipot",
+    rank: 4,
   },
   {
     id: "bs-5",
     name: "フュージョンテック ミネラル ローキャセロール 20cm PL",
     price: 23100,
     image: "/images/products/product-5.jpg",
+    category: "casserole",
+    rank: 5,
   },
   {
     id: "bs-6",
@@ -208,18 +236,24 @@ export const bestSellers: Product[] = [
     price: 24200,
     image: "/images/products/product-6.jpg",
     badge: "公式ショップ限定",
+    category: "ricepot",
+    rank: 6,
   },
   {
     id: "bs-7",
     name: "フュージョンテック ミネラル ハイキャセロール 24cm PL",
     price: 27500,
     image: "/images/products/product-7.jpg",
+    category: "casserole",
+    rank: 7,
   },
   {
     id: "bs-8",
     name: "フュージョンテック ミネラル ハイキャセロール 16cm PL",
     price: 20900,
     image: "/images/products/product-8.jpg",
+    category: "casserole",
+    rank: 8,
   },
 ];
 
