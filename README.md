@@ -39,8 +39,8 @@ src/
     page.tsx          # homepage composition
     globals.css       # design system (palette, animations)
   components/
-    AppShell.tsx          # provider + header/bottom-nav/overlays + toast
-    Header.tsx            # sticky header with blur-on-scroll
+    AppShell.tsx          # provider + header/overlays + toast
+    Header.tsx            # sticky header (search, account, cart, categories)
     HeroSlider.tsx        # cinematic hero (swipe + arrows + dots + autoplay)
     TasteMattersSection.tsx  # WMF Germany "TASTE MATTERS" category slider
     CategoryLayer.tsx     # layered slide-in category panel
@@ -52,7 +52,6 @@ src/
     NewsList.tsx          # news
     MobileFooter.tsx      # accordion footer
     SearchLayer.tsx       # full-screen mobile search
-    BottomNavigation.tsx  # app-style bottom nav
     ui-context.tsx        # search / category / cart state
     Reveal.tsx            # fade-in on scroll
     icons.tsx             # inline SVG icons

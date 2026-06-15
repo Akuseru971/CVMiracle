@@ -14,6 +14,7 @@ type FilterOption = {
 };
 
 type Props = {
+  id?: string;
   eyebrow: string;
   title: string;
   products: Product[];
@@ -74,6 +75,7 @@ function CarouselControls({
 }
 
 export function ProductCarousel({
+  id,
   eyebrow,
   title,
   products,
@@ -97,7 +99,7 @@ export function ProductCarousel({
   }, [activeFilter, ref]);
 
   return (
-    <section className={`${tone === "muted" ? "bg-cloud" : "bg-paper"} py-12`} aria-label={title}>
+    <section id={id} className={`${tone === "muted" ? "bg-cloud" : "bg-paper"} py-12`} aria-label={title}>
       <Reveal className="flex items-end justify-between px-6">
         <div>
           <p className="label-track text-[10px] font-medium text-graphite">{eyebrow}</p>

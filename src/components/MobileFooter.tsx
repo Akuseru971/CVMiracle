@@ -8,7 +8,7 @@ export function MobileFooter() {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
-    <footer className="bg-ink pb-28 pt-12 text-paper">
+    <footer className="bg-ink pb-12 pt-12 text-paper">
       <div className="px-6">
         <span className="brand-track text-[24px] font-bold">WMF</span>
         <p className="mt-3 max-w-[280px] text-[11.5px] leading-relaxed text-paper/60">

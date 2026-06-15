@@ -17,6 +17,7 @@ export default function Home() {
       <TasteMattersSection />
       <CampaignSlider />
       <ProductCarousel
+        id="best-sellers"
         eyebrow="RANKING"
         title="ベストセラー"
         products={bestSellers}

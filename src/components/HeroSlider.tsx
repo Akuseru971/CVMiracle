@@ -41,7 +41,13 @@ export function HeroSlider() {
                 <button className="press h-12 w-full bg-paper text-[13px] font-medium tracking-wide text-ink">
                   {slide.primaryCta}
                 </button>
-                <button className="press h-12 w-full border border-paper/70 text-[13px] font-medium tracking-wide text-paper">
+                <button
+                  type="button"
+                  onClick={() =>
+                    document.getElementById("best-sellers")?.scrollIntoView({ behavior: "smooth", block: "start" })
+                  }
+                  className="press h-12 w-full border border-paper/70 text-[13px] font-medium tracking-wide text-paper"
+                >
                   {slide.secondaryCta}
                 </button>
               </div>
