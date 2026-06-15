@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+/*
+  WMF Japan — Mobile design system
+  Palette: black / white / grey / metallic silver. Calm, premium, editorial.
+*/
+@theme {
+  --color-ink: #111315;
+  --color-ink-soft: #2b2f33;
+  --color-graphite: #5b6166;
+  --color-silver: #9aa1a6;
+  --color-mist: #e7e9ea;
+  --color-cloud: #f4f5f6;
+  --color-paper: #ffffff;
+  --color-metal: #c7ccd0;
+  --color-sale: #b42318;
+
+  --font-sans: var(--font-noto-sans-jp), "Helvetica Neue", Arial, sans-serif;
+
+  --tracking-brand: 0.42em;
+  --tracking-label: 0.28em;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+/* Hide scrollbars on horizontal carousels while keeping native swipe. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-x-mandatory {
+  scroll-snap-type: x mandatory;
+}
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* Spaced uppercase editorial labels (TASTE MATTERS direction). */
+.brand-track {
+  letter-spacing: var(--tracking-brand);
+  text-transform: uppercase;
+}
+.label-track {
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+/* Scroll reveal — subtle fade + rise. */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Slide-in panel (category layer / search layer). */
+@keyframes panel-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-panel-in {
+  animation: panel-in 0.36s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-fade-in {
+  animation: fade-in 0.28s ease-out both;
+}
+
+/* Soft press feedback for buttons / cards. */
+.press {
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.press:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
