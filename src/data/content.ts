@@ -699,7 +699,6 @@ export const news = [
 ];
 
 export const searchSuggestions = {
-  keywords: ["フライパン", "圧力鍋", "ギフト", "新商品", "20cm", "無水調理"],
   recent: ["フュージョンテック ミネラル", "カトラリーセット", "ナイフ"],
   ranking: [
     "フュージョンテック ミネラル",
