@@ -1,33 +1,31 @@
+/** Official WMF stacked wordmark — wmf.com logo.svg (40.352 × 50.074), path normalized to viewBox origin. */
+const LOGO_VIEWBOX = { width: 40.352, height: 50.074 } as const;
+
+const LOGO_PATH =
+  "M34.784 34.058h4.2v3.456h-4.2V49.99h-6.618V29.173l3.874-6.913h7.505v6.913h-4.68v4.89ZM7.667 0l8.151 14.752 6.214-11.3 6.215 11.3L36.479 0h3.873L26.391 25.206l-6.215-11.3-6.214 11.3L.004 0ZM5.892 31.612v18.461H2.583V22.255h5.81l5.488 9.947 6.295-11.3 4.6 8.261V49.99h-6.617V31.612l-6.055 11.044L5.89 31.613Z";
+
 type Props = {
   variant?: "black" | "white";
   className?: string;
   height?: number;
 };
 
-/** Official WMF stacked wordmark — W above MF. */
 export function WmfLogo({ variant = "black", className = "", height = 24 }: Props) {
   const fill = variant === "white" ? "#FFFFFF" : "#000000";
-  const width = Math.round(height * 0.88);
+  const width = (height * LOGO_VIEWBOX.width) / LOGO_VIEWBOX.height;
 
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 88 96"
+      viewBox={`0 0 ${LOGO_VIEWBOX.width} ${LOGO_VIEWBOX.height}`}
       width={width}
       height={height}
-      className={className}
+      className={`block shrink-0 ${className}`.trim()}
       aria-label="WMF"
       role="img"
+      shapeRendering="geometricPrecision"
     >
-      <path
-        fill={fill}
-        d="M0 4 L11 4 L19.5 44 L28 4 L39 4 L47.5 44 L56 4 L67 4 L52 68 L41 68 L33.5 32 L26 68 L15 68 Z"
-      />
-      <path
-        fill={fill}
-        d="M0 72 L0 92 L10 92 L10 82 L15.5 92 L25.5 92 L31 82 L31 92 L41 92 L41 72 L31 72 L20.5 88 L10 72 Z"
-      />
-      <path fill={fill} d="M47 72 L47 92 L84 92 L84 84 L57 84 L57 80 L81 80 L81 72 Z" />
+      <path fill={fill} d={LOGO_PATH} />
     </svg>
   );
 }
