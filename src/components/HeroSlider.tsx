@@ -13,7 +13,7 @@ export function HeroSlider() {
   });
 
   return (
-    <section className="relative bg-steel-deep" aria-label="ヒーロー">
+    <section className="relative bg-ink" aria-label="ヒーロー">
       <div ref={ref} className="no-scrollbar snap-x-mandatory flex overflow-x-auto">
         {heroSlides.map((slide, i) => (
           <div key={slide.id} className="snap-start relative h-[78vh] max-h-[640px] w-full shrink-0">
@@ -28,7 +28,7 @@ export function HeroSlider() {
             <div className="wmf-overlay-hero absolute inset-0" />
 
             <div className="absolute inset-x-0 bottom-0 px-6 pb-16 pt-24">
-              <p className="label-track text-[10px] font-medium text-steel-mist">{slide.eyebrow}</p>
+              <p className="label-track text-[10px] font-medium text-metal">{slide.eyebrow}</p>
               <h1 className="claim-track mt-3 max-w-[320px] text-[26px] font-medium leading-[1.35] text-paper">
                 {slide.title}
               </h1>

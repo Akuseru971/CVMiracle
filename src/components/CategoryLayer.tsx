@@ -23,7 +23,7 @@ export function CategoryLayer() {
       aria-modal="true"
       aria-label={detail.labelJa}
     >
-      <div className="absolute inset-0 animate-fade-in bg-steel-deep/50" onClick={closeLayer} />
+      <div className="absolute inset-0 animate-fade-in bg-ink/50" onClick={closeLayer} />
       <div className="animate-panel-in absolute inset-y-0 right-0 flex w-full max-w-[480px] flex-col bg-paper">
         <div className="flex h-[3.75rem] shrink-0 items-center gap-2 border-b border-mist px-3">
           <button

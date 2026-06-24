@@ -9,7 +9,7 @@ export function MobileFooter() {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
-    <footer className="bg-steel-deep pb-12 pt-12 text-paper">
+    <footer className="bg-ink pb-12 pt-12 text-paper">
       <div className="px-6">
         <div className="wmf-logo-zone inline-flex">
           <WmfLogo variant="white" height={22} />

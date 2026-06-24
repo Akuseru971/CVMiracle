@@ -104,10 +104,9 @@ body {
 .wmf-overlay-hero {
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.78) 0%,
-    rgba(0, 56, 101, 0.42) 38%,
-    rgba(198, 137, 63, 0.06) 72%,
-    rgba(0, 0, 0, 0.12) 100%
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(0, 0, 0, 0.35) 45%,
+    rgba(0, 0, 0, 0.08) 100%
   );
 }
 
@@ -115,7 +114,7 @@ body {
   background: linear-gradient(
     to top,
     rgba(0, 0, 0, 0.82) 0%,
-    rgba(39, 76, 96, 0.45) 45%,
+    rgba(0, 0, 0, 0.28) 45%,
     transparent 100%
   );
 }

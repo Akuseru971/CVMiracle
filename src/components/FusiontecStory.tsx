@@ -7,7 +7,7 @@ const chips = ["美しい発色", "優れた耐久性", "毎日の料理に"];
 
 export function FusiontecStory() {
   return (
-    <section className="relative overflow-hidden bg-steel-deep" aria-label="フュージョンテック ミネラル">
+    <section className="relative overflow-hidden bg-ink" aria-label="フュージョンテック ミネラル">
       <div className="relative aspect-[3/2] w-full">
         <Image
           src="/images/brand/fusiontec.jpg"
@@ -20,7 +20,7 @@ export function FusiontecStory() {
       </div>
 
       <Reveal className="px-6 pb-14 pt-4">
-        <p className="label-track text-[10px] font-medium text-steel-mist">FUSIONTEC MINERAL</p>
+        <p className="label-track text-[10px] font-medium text-metal">FUSIONTEC MINERAL</p>
         <h2 className="claim-track mt-3 text-[22px] font-medium text-paper">
           天然鉱石から生まれた、上質な調理体験。
         </h2>
