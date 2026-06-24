@@ -34,7 +34,7 @@ function GridItem({
           src={image}
           alt=""
           fill
-          sizes="52px"
+          sizes="56px"
           aria-hidden
         />
       </div>
