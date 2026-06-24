@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/AppShell";
 import { HeroSlider } from "@/components/HeroSlider";
-import { TasteMattersSection } from "@/components/TasteMattersSection";
 import { CategoryBrowseSection } from "@/components/CategoryBrowseSection";
 import { FeatureSection } from "@/components/FeatureSection";
 import { ProductCarousel } from "@/components/ProductCarousel";
@@ -15,7 +14,6 @@ export default function Home() {
   return (
     <AppShell>
       <HeroSlider />
-      <TasteMattersSection />
       <CategoryBrowseSection />
       <FeatureSection />
       <ProductCarousel

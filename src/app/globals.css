@@ -120,15 +120,6 @@ body {
   );
 }
 
-.wmf-overlay-category {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.88) 0%,
-    rgba(0, 56, 101, 0.25) 50%,
-    transparent 100%
-  );
-}
-
 .wmf-category-visual {
   filter: grayscale(100%) contrast(1.06) brightness(0.92);
 }
