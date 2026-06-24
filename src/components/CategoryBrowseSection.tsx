@@ -13,13 +13,11 @@ type Tab = "categories" | "series";
 function GridItem({
   image,
   title,
-  subtitle,
   onClick,
   withRightBorder,
 }: {
   image: string;
   title: string;
-  subtitle: string;
   onClick: () => void;
   withRightBorder?: boolean;
 }) {
@@ -27,18 +25,29 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press flex min-h-[88px] items-center gap-3 border-b border-mist px-4 py-4 text-left ${
+      className={`press group flex flex-col overflow-hidden border-b border-mist bg-paper text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="relative h-[52px] w-[52px] shrink-0 overflow-hidden bg-cloud">
-        <Image src={image} alt="" fill sizes="52px" className="object-contain p-1" aria-hidden />
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-cloud">
+        <Image
+          src={image}
+          alt=""
+          fill
+          sizes="(max-width: 480px) 50vw, 240px"
+          className="object-cover object-center transition-transform duration-500 group-active:scale-[1.03]"
+          aria-hidden
+        />
       </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-semibold leading-snug text-ink">{title}</p>
-        <p className="copy-body mt-1 line-clamp-2 text-[11px] text-silver">{subtitle}</p>
+      <div className="flex min-h-[52px] items-center gap-2 px-3.5 py-3">
+        <p className="min-w-0 flex-1 text-[13.5px] font-bold leading-snug tracking-tight text-ink">
+          {title}
+        </p>
+        <ChevronRight
+          className="h-3.5 w-3.5 shrink-0 text-silver opacity-50 transition-opacity group-active:opacity-80"
+          aria-hidden
+        />
       </div>
-      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-metal" aria-hidden />
     </button>
   );
 }
@@ -57,7 +66,6 @@ function CategoryGrid({
           key={item.id}
           image={item.image}
           title={item.labelJa}
-          subtitle={item.subtitleJa}
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />
@@ -80,7 +88,6 @@ function SeriesGrid({
           key={item.id}
           image={item.image}
           title={item.name}
-          subtitle={item.subtitleJa}
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />
