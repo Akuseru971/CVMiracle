@@ -147,14 +147,16 @@ body {
 }
 
 .wmf-browse-thumb {
-  width: 100%;
-  min-height: 88px;
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
   overflow: hidden;
 }
 
 .wmf-browse-thumb img {
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
 }
 
 /* ── Scroll reveal ── */

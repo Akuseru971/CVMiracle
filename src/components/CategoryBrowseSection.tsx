@@ -13,11 +13,13 @@ type Tab = "categories" | "series";
 function GridItem({
   image,
   title,
+  titleLang,
   onClick,
   withRightBorder,
 }: {
   image: string;
   title: string;
+  titleLang?: string;
   onClick: () => void;
   withRightBorder?: boolean;
 }) {
@@ -25,29 +27,32 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press group grid min-h-[88px] grid-cols-2 border-b border-mist bg-paper p-0 text-left ${
+      className={`press group flex min-h-[88px] items-center gap-2.5 border-b border-mist bg-paper px-3 py-4 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="wmf-browse-thumb relative min-h-[88px] w-full">
+      <div className="wmf-browse-thumb">
         <Image
           src={image}
           alt=""
           fill
-          sizes="(max-width: 480px) 25vw, 120px"
-          className="object-contain object-left"
+          sizes="52px"
+          className="wmf-category-visual object-contain object-center"
           aria-hidden
         />
       </div>
-      <div className="flex min-w-0 items-center gap-1.5 px-3 py-3">
-        <p className="min-w-0 flex-1 text-[13px] font-bold leading-snug tracking-tight text-ink">
-          {title}
-        </p>
-        <ChevronRight
-          className="h-3.5 w-3.5 shrink-0 text-silver opacity-45"
-          aria-hidden
-        />
-      </div>
+      <p
+        lang={titleLang}
+        className={`min-w-0 flex-1 text-[12.5px] font-bold leading-[1.35] tracking-tight text-ink ${
+          titleLang === "ja" ? "[line-break:strict] [word-break:keep-all]" : ""
+        }`}
+      >
+        {title}
+      </p>
+      <ChevronRight
+        className="h-3.5 w-3.5 shrink-0 text-metal opacity-50"
+        aria-hidden
+      />
     </button>
   );
 }
@@ -66,6 +71,7 @@ function CategoryGrid({
           key={item.id}
           image={item.image}
           title={item.labelJa}
+          titleLang="ja"
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />
