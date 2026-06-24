@@ -146,6 +146,21 @@ body {
   shape-rendering: geometricPrecision;
 }
 
+.wmf-browse-thumb {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.wmf-browse-thumb img {
+  object-fit: contain;
+  object-position: center;
+  transform: scale(1.14);
+  transform-origin: center;
+}
+
 /* ── Scroll reveal ── */
 .reveal {
   opacity: 0;

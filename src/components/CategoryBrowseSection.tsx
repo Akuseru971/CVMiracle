@@ -25,17 +25,16 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press group flex min-h-[76px] items-center gap-2.5 border-b border-mist bg-paper px-3 py-3 text-left ${
+      className={`press group flex min-h-[88px] items-center gap-3 border-b border-mist bg-paper px-4 py-4 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="relative h-12 w-12 shrink-0 overflow-hidden">
+      <div className="wmf-browse-thumb">
         <Image
           src={image}
           alt=""
           fill
-          sizes="48px"
-          className="object-contain object-center"
+          sizes="52px"
           aria-hidden
         />
       </div>
