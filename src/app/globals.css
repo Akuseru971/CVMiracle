@@ -152,8 +152,8 @@ body {
 
 .wmf-browse-thumb {
   position: relative;
-  width: 64px;
-  height: 64px;
+  width: 100%;
+  height: 76px;
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -161,7 +161,7 @@ body {
 .wmf-browse-thumb img {
   object-fit: contain;
   object-position: center;
-  transform: scale(1.1);
+  transform: scale(1.06);
   transform-origin: center;
 }
 
