@@ -25,26 +25,28 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press group flex min-h-[88px] items-center gap-3 border-b border-mist bg-paper px-4 py-4 text-left ${
+      className={`press group flex min-h-[88px] items-stretch border-b border-mist bg-paper p-0 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="wmf-browse-thumb">
+      <div className="wmf-browse-thumb relative w-1/2 shrink-0 self-stretch">
         <Image
           src={image}
           alt=""
           fill
-          sizes="56px"
+          sizes="(max-width: 480px) 25vw, 120px"
           aria-hidden
         />
       </div>
-      <p className="min-w-0 flex-1 text-[13px] font-bold leading-snug tracking-tight text-ink">
-        {title}
-      </p>
-      <ChevronRight
-        className="h-3.5 w-3.5 shrink-0 text-silver opacity-45"
-        aria-hidden
-      />
+      <div className="flex w-1/2 min-w-0 items-center gap-1.5 px-3 py-3">
+        <p className="min-w-0 flex-1 text-[13px] font-bold leading-snug tracking-tight text-ink">
+          {title}
+        </p>
+        <ChevronRight
+          className="h-3.5 w-3.5 shrink-0 text-silver opacity-45"
+          aria-hidden
+        />
+      </div>
     </button>
   );
 }
