@@ -96,7 +96,7 @@ export function CategoryBrowseSection() {
   return (
     <section id="category-browse" className="bg-cloud pb-2" aria-label="商品を探す">
       <Reveal className="px-6 pt-12">
-        <p className="label-track text-[10px] font-medium text-steel">SHOP BY</p>
+        <p className="label-track text-[10px] font-medium text-ink">SHOP BY</p>
         <h2 className="mt-2 text-[20px] font-medium tracking-tight text-ink">商品を探す</h2>
         <p className="copy-body mt-2 max-w-[320px] text-[12.5px] text-graphite">
           カテゴリーまたはシリーズ・ブランドから、WMFの商品をお選びください。

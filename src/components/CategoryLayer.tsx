@@ -28,7 +28,7 @@ export function CategoryLayer() {
         <div className="flex h-[3.75rem] shrink-0 items-center gap-2 border-b border-mist px-3">
           <button
             onClick={closeLayer}
-            className="press flex h-10 items-center gap-1.5 pr-2 text-signature"
+            className="press flex h-10 items-center gap-1.5 pr-2 text-ink"
             aria-label="戻る"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -56,7 +56,7 @@ export function CategoryLayer() {
           </div>
 
           <div className="px-6 pt-8">
-            <p className="label-track text-[10px] font-medium text-steel">
+            <p className="label-track text-[10px] font-medium text-ink">
               {isSeries ? "シリーズラインアップ" : "サブカテゴリー"}
             </p>
             <ul className="mt-4 grid grid-cols-2 gap-3">
@@ -77,10 +77,10 @@ export function CategoryLayer() {
           <div className="px-6 pt-8">
             <div className="mb-4 flex items-end justify-between">
               <div>
-                <p className="label-track text-[10px] font-medium text-steel">BEST SELLERS</p>
+                <p className="label-track text-[10px] font-medium text-ink">BEST SELLERS</p>
                 <h3 className="mt-1 text-[15px] font-medium text-ink">人気商品</h3>
               </div>
-              <a href="#best-sellers" onClick={closeLayer} className="press text-[11px] text-steel">
+              <a href="#best-sellers" onClick={closeLayer} className="press text-[11px] text-ink">
                 すべて見る
               </a>
             </div>

@@ -16,7 +16,7 @@ export function TasteMattersSection() {
   return (
     <section id="taste-matters" className="bg-paper py-14" aria-label="TASTE MATTERS">
       <Reveal className="px-6">
-        <p className="label-track text-[10px] font-medium text-steel">SINCE 1853</p>
+        <p className="label-track text-[10px] font-medium text-ink">SINCE 1853</p>
         <h2 className="brand-track mt-2 text-[24px] font-semibold leading-none text-ink">TASTE MATTERS</h2>
         <p className="copy-body mt-3 max-w-[300px] text-[12.5px] text-graphite">
           カテゴリーから探す。ドイツの哲学が息づく、上質なキッチンの道具たち。
@@ -47,7 +47,7 @@ export function TasteMattersSection() {
                 {category.name}
               </p>
               <p className="mt-2 text-[13px] font-normal text-paper/90">{category.labelJa}</p>
-              <span className="mt-4 inline-flex items-center gap-1 text-[11px] tracking-[0.12em] text-steel-mist">
+              <span className="mt-4 inline-flex items-center gap-1 text-[11px] tracking-[0.12em] text-paper/75">
                 見る
                 <ChevronRight className="h-3.5 w-3.5" />
               </span>

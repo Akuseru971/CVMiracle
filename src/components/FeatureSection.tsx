@@ -16,7 +16,7 @@ export function FeatureSection() {
   return (
     <section className="bg-cloud py-12" aria-label="特集">
       <Reveal className="px-6">
-        <p className="label-track text-[10px] font-medium text-steel">WMF HIGHLIGHTS</p>
+        <p className="label-track text-[10px] font-medium text-ink">WMF HIGHLIGHTS</p>
         <h2 className="mt-1.5 text-[19px] font-medium text-ink">特集</h2>
       </Reveal>
 
@@ -33,7 +33,7 @@ export function FeatureSection() {
               />
               <div className="wmf-overlay-editorial absolute inset-0" />
               <div className="absolute inset-x-0 bottom-0 p-6">
-                <p className="label-track text-[10px] font-medium text-steel-mist">{slide.eyebrow}</p>
+                <p className="label-track text-[10px] font-medium text-paper/75">{slide.eyebrow}</p>
                 <h3 className="claim-track mt-2 text-[21px] font-medium leading-snug text-paper">
                   {slide.title}
                 </h3>

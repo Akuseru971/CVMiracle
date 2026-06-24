@@ -8,7 +8,7 @@ export function NewsList() {
   return (
     <section className="bg-paper py-12" aria-label="ニュース">
       <Reveal className="px-6">
-        <p className="label-track text-[10px] font-medium text-steel">NEWS</p>
+        <p className="label-track text-[10px] font-medium text-ink">NEWS</p>
         <h2 className="mt-1.5 text-[19px] font-medium text-ink">お知らせ</h2>
       </Reveal>
 

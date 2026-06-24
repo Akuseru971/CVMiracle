@@ -102,7 +102,7 @@ export function ProductCarousel({
     <section id={id} className={`${tone === "muted" ? "bg-cloud" : "bg-paper"} py-12`} aria-label={title}>
       <Reveal className="flex items-end justify-between px-6">
         <div>
-          <p className="label-track text-[10px] font-medium text-steel">{eyebrow}</p>
+          <p className="label-track text-[10px] font-medium text-ink">{eyebrow}</p>
           <h2 className="mt-1.5 text-[19px] font-medium text-ink">{title}</h2>
         </div>
         <a href="#" className="press text-[11px] tracking-wide text-graphite">
@@ -169,7 +169,7 @@ export function ProductCarousel({
             </div>
             <button
               onClick={() => addToCart(product.name)}
-              className="press mt-3 h-10 w-full border border-signature text-[12px] font-medium tracking-wide text-signature"
+              className="press mt-3 h-10 w-full border border-ink text-[12px] font-medium tracking-wide text-ink"
             >
               商品を見る
             </button>

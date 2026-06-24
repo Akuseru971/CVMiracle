@@ -7,7 +7,7 @@ export function ServiceCards() {
   return (
     <section className="bg-paper py-12" aria-label="サービス">
       <Reveal className="px-6">
-        <p className="label-track text-[10px] font-medium text-steel">OFFICIAL SHOP</p>
+        <p className="label-track text-[10px] font-medium text-ink">OFFICIAL SHOP</p>
         <h2 className="mt-1.5 text-[19px] font-medium text-ink">公式ショップの安心</h2>
       </Reveal>
 
