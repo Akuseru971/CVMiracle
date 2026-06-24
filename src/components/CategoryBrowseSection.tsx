@@ -28,7 +28,7 @@ function GridItem({
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`press group flex min-h-[88px] items-center gap-2.5 border-b border-mist bg-paper px-3 py-4 text-left ${
+      className={`press group flex min-h-[96px] items-center gap-3 border-b border-mist bg-paper px-3.5 py-3.5 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
@@ -37,16 +37,16 @@ function GridItem({
           src={image}
           alt=""
           fill
-          sizes="52px"
-          className="wmf-category-visual object-contain object-center"
+          sizes="64px"
+          className="wmf-browse-visual object-contain object-center"
           aria-hidden
         />
       </div>
-      <p className="min-w-0 flex-1 label-track text-[10px] font-semibold leading-[1.45] text-ink">
+      <p className="min-w-0 flex-1 label-track text-[10.5px] font-semibold leading-[1.4] text-ink">
         {title}
       </p>
       <ChevronRight
-        className="h-3.5 w-3.5 shrink-0 text-metal opacity-50"
+        className="mr-0.5 h-3.5 w-3.5 shrink-0 text-metal opacity-50"
         aria-hidden
       />
     </button>
