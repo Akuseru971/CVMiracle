@@ -51,7 +51,7 @@ function GridItem({
         lang={titleLang === "ja" ? "ja" : undefined}
         className={
           titleLang === "ja"
-            ? `min-w-0 flex-1 font-bold leading-[1.35] text-ink [line-break:strict] [word-break:keep-all] ${
+            ? `min-w-0 flex-1 font-normal leading-[1.35] text-ink [line-break:strict] [word-break:keep-all] ${
                 compactTitle ? "text-[11px]" : "text-[12.5px]"
               }`
             : `wmf-browse-label min-w-0 flex-1 ${compactTitle ? "text-[9px]" : "text-[10px]"}`
