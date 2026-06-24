@@ -13,13 +13,13 @@ type Tab = "categories" | "series";
 function GridItem({
   image,
   title,
-  titleLang,
+  ariaLabel,
   onClick,
   withRightBorder,
 }: {
   image: string;
   title: string;
-  titleLang?: string;
+  ariaLabel: string;
   onClick: () => void;
   withRightBorder?: boolean;
 }) {
@@ -27,6 +27,7 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
+      aria-label={ariaLabel}
       className={`press group flex min-h-[88px] items-center gap-2.5 border-b border-mist bg-paper px-3 py-4 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
@@ -41,12 +42,7 @@ function GridItem({
           aria-hidden
         />
       </div>
-      <p
-        lang={titleLang}
-        className={`min-w-0 flex-1 text-[12.5px] font-bold leading-[1.35] tracking-tight text-ink ${
-          titleLang === "ja" ? "[line-break:strict] [word-break:keep-all]" : ""
-        }`}
-      >
+      <p className="min-w-0 flex-1 label-track text-[10px] font-semibold leading-[1.45] text-ink">
         {title}
       </p>
       <ChevronRight
@@ -70,8 +66,8 @@ function CategoryGrid({
         <GridItem
           key={item.id}
           image={item.image}
-          title={item.labelJa}
-          titleLang="ja"
+          title={item.name}
+          ariaLabel={`${item.name} — ${item.labelJa}`}
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />
@@ -94,6 +90,7 @@ function SeriesGrid({
           key={item.id}
           image={item.image}
           title={item.name}
+          ariaLabel={item.name}
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />

@@ -27,6 +27,7 @@ export type Category = {
 
 export type BrowseItem = {
   id: string;
+  name: string;
   labelJa: string;
   subtitleJa: string;
   image: string;
@@ -208,69 +209,16 @@ export const categories: Category[] = [
   },
 ];
 
-/** Homepage category browse grid — inspired by two-column mobile category UX. */
-export const browseCategories: BrowseItem[] = [
-  {
-    id: "pots",
-    labelJa: "鍋",
-    subtitleJa: "キャセロール・マルチポット",
-    image: "/images/categories/pots.jpg",
-  },
-  {
-    id: "pressure",
-    labelJa: "圧力鍋",
-    subtitleJa: "パーフェクトプラス・フュージョンテック",
-    image: "/images/brand/perfection.jpg",
-  },
-  {
-    id: "pans",
-    labelJa: "フライパン",
-    subtitleJa: "24cm・26cm・深型",
-    image: "/images/categories/pans.jpg",
-  },
-  {
-    id: "knives",
-    labelJa: "包丁&ナイフ",
-    subtitleJa: "三徳包丁・ナイフセット",
-    image: "/images/categories/knives.jpg",
-  },
-  {
-    id: "cutlery",
-    labelJa: "カトラリー",
-    subtitleJa: "スプーン・フォーク・セット",
-    image: "/images/categories/cutlery.jpg",
-  },
-  {
-    id: "helpers",
-    labelJa: "キッチンツール",
-    subtitleJa: "レードル・ターナー・ツールセット",
-    image: "/images/categories/helpers.jpg",
-  },
-  {
-    id: "drinkware",
-    labelJa: "ドリンクウェア",
-    subtitleJa: "タンブラー・ボトル",
-    image: "/images/categories/coffee.jpg",
-  },
-  {
-    id: "storage",
-    labelJa: "保存容器",
-    subtitleJa: "フードコンテナ・ガラス保存容器",
-    image: "/images/products/product-4.jpg",
-  },
-  {
-    id: "tableware",
-    labelJa: "テーブルアクセサリー",
-    subtitleJa: "サービング・テーブルウェア",
-    image: "/images/lifestyle/jp-2.jpg",
-  },
-  {
-    id: "accessories",
-    labelJa: "アクセサリー",
-    subtitleJa: "交換部品・消耗品",
-    image: "/images/brand/iconic.jpg",
-  },
-];
+/** Homepage category browse grid — WMF Germany TASTE MATTERS families. */
+export const browseCategories: BrowseItem[] = categories.map(
+  ({ id, name, labelJa, subtitleJa, image }) => ({
+    id,
+    name,
+    labelJa,
+    subtitleJa,
+    image,
+  }),
+);
 
 /** WMF series / brand collections for the second browse tab. */
 export const seriesCollections: SeriesCollection[] = [
