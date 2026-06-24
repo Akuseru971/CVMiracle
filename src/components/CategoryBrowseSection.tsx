@@ -28,7 +28,7 @@ function GridItem({
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`press group grid min-h-[100px] grid-cols-[44%_minmax(0,1fr)_auto] items-center gap-x-2 border-b border-mist bg-paper px-2 py-3 text-left ${
+      className={`press group grid min-h-[100px] grid-cols-[44%_minmax(0,1fr)_auto] items-stretch border-b border-mist bg-paper py-0 pl-0 pr-2 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
@@ -38,17 +38,19 @@ function GridItem({
           alt=""
           fill
           sizes="(max-width: 480px) 22vw, 110px"
-          className="wmf-browse-visual object-contain object-center"
+          className="wmf-browse-visual object-contain object-left"
           aria-hidden
         />
       </div>
-      <p className="min-w-0 label-track text-[10px] font-semibold leading-[1.35] text-ink">
+      <p className="flex min-w-0 items-center px-2 py-3 label-track text-[10px] font-semibold leading-[1.35] text-ink">
         {title}
       </p>
-      <ChevronRight
-        className="mr-1 h-3.5 w-3.5 shrink-0 text-metal opacity-50"
-        aria-hidden
-      />
+      <span className="flex items-center pr-1">
+        <ChevronRight
+          className="h-3.5 w-3.5 shrink-0 text-metal opacity-50"
+          aria-hidden
+        />
+      </span>
     </button>
   );
 }
