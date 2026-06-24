@@ -25,29 +25,27 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press group flex flex-col overflow-hidden border-b border-mist bg-paper text-left ${
+      className={`press group flex min-h-[76px] items-center gap-2.5 border-b border-mist bg-paper px-3 py-3 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-cloud">
+      <div className="relative h-12 w-12 shrink-0 overflow-hidden">
         <Image
           src={image}
           alt=""
           fill
-          sizes="(max-width: 480px) 50vw, 240px"
-          className="object-cover object-center transition-transform duration-500 group-active:scale-[1.03]"
+          sizes="48px"
+          className="object-contain object-center"
           aria-hidden
         />
       </div>
-      <div className="flex min-h-[52px] items-center gap-2 px-3.5 py-3">
-        <p className="min-w-0 flex-1 text-[13.5px] font-bold leading-snug tracking-tight text-ink">
-          {title}
-        </p>
-        <ChevronRight
-          className="h-3.5 w-3.5 shrink-0 text-silver opacity-50 transition-opacity group-active:opacity-80"
-          aria-hidden
-        />
-      </div>
+      <p className="min-w-0 flex-1 text-[13px] font-bold leading-snug tracking-tight text-ink">
+        {title}
+      </p>
+      <ChevronRight
+        className="h-3.5 w-3.5 shrink-0 text-silver opacity-45"
+        aria-hidden
+      />
     </button>
   );
 }
