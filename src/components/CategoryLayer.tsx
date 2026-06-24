@@ -37,7 +37,7 @@ export function CategoryLayer() {
         </div>
 
         <div className="no-scrollbar flex-1 overflow-y-auto pb-10">
-          <div className="relative aspect-[3/2] w-full bg-signature">
+          <div className="relative aspect-[3/2] w-full bg-ink">
             <Image
               src={detail.image}
               alt={detail.labelJa}
@@ -116,7 +116,7 @@ export function CategoryLayer() {
           <div className="px-6 pt-8">
             <button
               type="button"
-              className="press h-12 w-full bg-signature text-[13px] font-medium tracking-wide text-paper"
+              className="press h-12 w-full bg-ink text-[13px] font-medium tracking-wide text-paper"
             >
               {ctaLabel}
             </button>

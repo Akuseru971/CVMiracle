@@ -31,7 +31,7 @@ export function TasteMattersSection() {
           <button
             key={category.id}
             onClick={() => openCategory(category.id)}
-            className="press snap-start group relative aspect-[2/3] h-[420px] w-[252px] shrink-0 overflow-hidden bg-signature text-left"
+            className="press snap-start group relative aspect-[2/3] h-[420px] w-[252px] shrink-0 overflow-hidden bg-ink text-left"
             aria-label={`${category.name} を開く`}
           >
             <Image
@@ -64,7 +64,7 @@ export function TasteMattersSection() {
               onClick={() => goTo(i)}
               aria-label={`${category.name} へ`}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                active === i ? "w-5 bg-signature" : "w-1.5 bg-metal"
+                active === i ? "w-5 bg-ink" : "w-1.5 bg-metal"
               }`}
             />
           ))}

@@ -49,7 +49,7 @@ function CarouselControls({
             onClick={() => goTo(i)}
             aria-label={`商品 ${i + 1}`}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              active === i ? "w-5 bg-signature" : "w-1.5 bg-metal"
+              active === i ? "w-5 bg-ink" : "w-1.5 bg-metal"
             }`}
           />
         ))}
@@ -118,7 +118,7 @@ export function ProductCarousel({
               onClick={() => setActiveFilter(filter.id)}
               className={`press shrink-0 border px-4 py-2 text-[11px] font-medium tracking-wide transition-colors ${
                 activeFilter === filter.id
-                  ? "border-signature bg-signature text-paper"
+                  ? "border-ink bg-ink text-paper"
                   : "border-mist bg-paper text-graphite"
               }`}
             >
@@ -144,7 +144,7 @@ export function ProductCarousel({
                 className="object-contain p-3"
               />
               {showRanking && product.rank && (
-                <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center bg-signature text-[13px] font-semibold text-paper">
+                <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center bg-ink text-[13px] font-semibold text-paper">
                   {product.rank}
                 </span>
               )}

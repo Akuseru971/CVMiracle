@@ -10,7 +10,7 @@ function Toast() {
   if (!toast) return null;
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-6 z-[60] flex justify-center px-6 pb-[env(safe-area-inset-bottom)]">
-      <div className="animate-fade-in rounded-full bg-signature px-5 py-3 text-[12px] font-medium text-paper shadow-lg">
+      <div className="animate-fade-in rounded-full bg-ink px-5 py-3 text-[12px] font-medium text-paper shadow-lg">
         {toast}
       </div>
     </div>

@@ -108,7 +108,7 @@ export function CategoryBrowseSection() {
           type="button"
           onClick={() => setActiveTab("categories")}
           className={`press min-h-[52px] px-3 py-3.5 text-[12px] font-medium leading-snug transition-colors duration-300 ${
-            activeTab === "categories" ? "bg-signature text-paper" : "bg-paper text-graphite"
+            activeTab === "categories" ? "bg-ink text-paper" : "bg-paper text-graphite"
           }`}
         >
           カテゴリーから探す
@@ -117,7 +117,7 @@ export function CategoryBrowseSection() {
           type="button"
           onClick={() => setActiveTab("series")}
           className={`press min-h-[52px] border-l border-mist px-3 py-3.5 text-[12px] font-medium leading-snug transition-colors duration-300 ${
-            activeTab === "series" ? "bg-signature text-paper" : "bg-paper text-graphite"
+            activeTab === "series" ? "bg-ink text-paper" : "bg-paper text-graphite"
           }`}
         >
           シリーズ・ブランドから探す

@@ -23,7 +23,7 @@ export function FeatureSection() {
       <div ref={ref} className="no-scrollbar snap-x-mandatory mt-6 flex overflow-x-auto px-6">
         {featureSlides.map((slide) => (
           <article key={slide.id} className="snap-start w-[calc(100%-1rem)] shrink-0 pr-4">
-            <div className="relative aspect-[3/2] w-full overflow-hidden bg-signature">
+            <div className="relative aspect-[3/2] w-full overflow-hidden bg-ink">
               <Image
                 src={slide.image}
                 alt={slide.title}
@@ -55,7 +55,7 @@ export function FeatureSection() {
               onClick={() => goTo(i)}
               aria-label={`特集 ${i + 1}`}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                active === i ? "w-5 bg-signature" : "w-1.5 bg-metal"
+                active === i ? "w-5 bg-ink" : "w-1.5 bg-metal"
               }`}
             />
           ))}
