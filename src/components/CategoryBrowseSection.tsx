@@ -23,12 +23,14 @@ function GridItem({
   onClick: () => void;
   withRightBorder?: boolean;
 }) {
+  const compactTitle = title.length > 13;
+
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className={`press group grid min-h-[100px] grid-cols-[44%_minmax(0,1fr)_auto] items-stretch border-b border-mist bg-paper py-0 pl-0 pr-2 text-left ${
+      className={`press group flex min-h-[96px] items-center gap-2.5 border-b border-mist bg-paper py-3 pl-2 pr-2.5 text-left transition-opacity duration-200 active:opacity-90 ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
@@ -37,20 +39,17 @@ function GridItem({
           src={image}
           alt=""
           fill
-          sizes="(max-width: 480px) 22vw, 110px"
-          className="wmf-browse-visual object-contain object-left"
+          sizes="52px"
+          className="wmf-browse-visual wmf-browse-image object-contain object-center"
           aria-hidden
         />
       </div>
-      <p className="flex min-w-0 items-center px-2 py-3 label-track text-[10px] font-semibold leading-[1.35] text-ink">
+      <p
+        className={`wmf-browse-label min-w-0 flex-1 ${compactTitle ? "text-[9px]" : "text-[10px]"}`}
+      >
         {title}
       </p>
-      <span className="flex items-center pr-1">
-        <ChevronRight
-          className="h-3.5 w-3.5 shrink-0 text-metal opacity-50"
-          aria-hidden
-        />
-      </span>
+      <ChevronRight className="wmf-browse-arrow h-4 w-4 shrink-0" aria-hidden />
     </button>
   );
 }

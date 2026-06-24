@@ -209,16 +209,23 @@ export const categories: Category[] = [
   },
 ];
 
-/** Homepage category browse grid — WMF Germany TASTE MATTERS families. */
-export const browseCategories: BrowseItem[] = categories.map(
-  ({ id, name, labelJa, subtitleJa, image }) => ({
+/** Homepage category browse grid — WMF Germany TASTE MATTERS families + gift tile. */
+export const browseCategories: BrowseItem[] = [
+  ...categories.map(({ id, name, labelJa, subtitleJa, image }) => ({
     id,
     name,
     labelJa,
     subtitleJa,
     image,
-  }),
-);
+  })),
+  {
+    id: "gift-ideas",
+    name: "GIFT IDEAS",
+    labelJa: "ギフト",
+    subtitleJa: "大切な人へ、WMFの上質を",
+    image: "/images/lifestyle/jp-1.jpg",
+  },
+];
 
 /** WMF series / brand collections for the second browse tab. */
 export const seriesCollections: SeriesCollection[] = [
@@ -402,6 +409,15 @@ const layerDetailsMap: Record<string, LayerDetail> = {
     subtitleJa: "効率と仕上がりを、両立する",
     image: "/images/categories/appliances.jpg",
     subcategories: ["トースター", "ブレンダー", "電気ケトル", "KITCHENminis", "ハンドブレンダー"],
+  },
+  "gift-ideas": {
+    id: "gift-ideas",
+    kind: "category",
+    nameLatin: "GIFT IDEAS",
+    labelJa: "ギフト",
+    subtitleJa: "大切な人へ、WMFの上質を贈る",
+    image: "/images/lifestyle/jp-1.jpg",
+    subcategories: ["ギフトセット", "カトラリーギフト", "調理器具ギフト", "コーヒーギフト", "ギフト包装"],
   },
 };
 
@@ -701,6 +717,7 @@ const layerProductKeywords: Record<string, string[]> = {
   kineo: ["Kineo"],
   "kult-x": ["Kult", "ナイフ", "包丁"],
   lono: ["Lono", "ケトル"],
+  "gift-ideas": ["ギフト", "セット"],
 };
 
 export function getBestSellersForLayer(id: string): Product[] {
