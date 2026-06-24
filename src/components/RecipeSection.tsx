@@ -10,7 +10,7 @@ export function RecipeSection() {
     <section className="bg-cloud py-12" aria-label="レシピ・インスピレーション">
       <Reveal className="flex items-end justify-between px-6">
         <div>
-          <p className="label-track text-[10px] font-medium text-graphite">RECIPE & INSPIRATION</p>
+          <p className="label-track text-[10px] font-medium text-steel">RECIPE & INSPIRATION</p>
           <h2 className="mt-1.5 text-[19px] font-medium text-ink">WMFでつくる、暮らし</h2>
         </div>
         <a href="#" className="press text-[11px] tracking-wide text-graphite">

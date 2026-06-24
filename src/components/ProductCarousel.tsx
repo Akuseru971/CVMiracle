@@ -49,7 +49,7 @@ function CarouselControls({
             onClick={() => goTo(i)}
             aria-label={`商品 ${i + 1}`}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              active === i ? "w-5 bg-ink" : "w-1.5 bg-metal"
+              active === i ? "w-5 bg-signature" : "w-1.5 bg-metal"
             }`}
           />
         ))}
@@ -102,7 +102,7 @@ export function ProductCarousel({
     <section id={id} className={`${tone === "muted" ? "bg-cloud" : "bg-paper"} py-12`} aria-label={title}>
       <Reveal className="flex items-end justify-between px-6">
         <div>
-          <p className="label-track text-[10px] font-medium text-graphite">{eyebrow}</p>
+          <p className="label-track text-[10px] font-medium text-steel">{eyebrow}</p>
           <h2 className="mt-1.5 text-[19px] font-medium text-ink">{title}</h2>
         </div>
         <a href="#" className="press text-[11px] tracking-wide text-graphite">
@@ -116,9 +116,9 @@ export function ProductCarousel({
             <button
               key={filter.id}
               onClick={() => setActiveFilter(filter.id)}
-              className={`press shrink-0 rounded-full border px-4 py-2 text-[11px] font-medium tracking-wide transition-colors ${
+              className={`press shrink-0 border px-4 py-2 text-[11px] font-medium tracking-wide transition-colors ${
                 activeFilter === filter.id
-                  ? "border-ink bg-ink text-paper"
+                  ? "border-signature bg-signature text-paper"
                   : "border-mist bg-paper text-graphite"
               }`}
             >
@@ -135,24 +135,30 @@ export function ProductCarousel({
       <div ref={ref} className="no-scrollbar snap-x-mandatory mt-5 flex gap-3.5 overflow-x-auto px-6">
         {filteredProducts.map((product) => (
           <article key={product.id} className="snap-start w-[200px] shrink-0">
-            <div className="relative aspect-[4/5] w-full overflow-hidden bg-paper">
-              <Image src={product.image} alt={product.name} fill sizes="200px" className="object-cover" />
+            <div className="wmf-product-stage relative aspect-square w-full overflow-hidden">
+              <Image
+                src={product.image}
+                alt={product.name}
+                fill
+                sizes="200px"
+                className="object-contain p-3"
+              />
               {showRanking && product.rank && (
-                <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center bg-ink text-[13px] font-semibold text-paper">
+                <span className="absolute left-0 top-0 flex h-8 w-8 items-center justify-center bg-signature text-[13px] font-semibold text-paper">
                   {product.rank}
                 </span>
               )}
               {product.badge && (
                 <span
                   className={`absolute right-2 top-2 px-2 py-0.5 text-[9.5px] font-medium tracking-wide ${
-                    product.sale ? "bg-sale text-paper" : "bg-paper/90 text-ink"
+                    product.sale ? "bg-accent-bronze text-paper" : "bg-paper/95 text-ink"
                   }`}
                 >
                   {product.badge}
                 </span>
               )}
             </div>
-            <h3 className="mt-3 line-clamp-2 min-h-[2.6em] text-[12.5px] leading-snug text-ink">
+            <h3 className="product-name mt-3 line-clamp-2 min-h-[2.6em] text-[12.5px] text-ink">
               {product.name}
             </h3>
             <div className="mt-1.5 flex items-baseline gap-2">
@@ -163,7 +169,7 @@ export function ProductCarousel({
             </div>
             <button
               onClick={() => addToCart(product.name)}
-              className="press mt-3 h-10 w-full border border-ink text-[12px] font-medium tracking-wide text-ink"
+              className="press mt-3 h-10 w-full border border-signature text-[12px] font-medium tracking-wide text-signature"
             >
               商品を見る
             </button>

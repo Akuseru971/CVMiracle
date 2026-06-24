@@ -16,40 +16,38 @@ export function TasteMattersSection() {
   return (
     <section id="taste-matters" className="bg-paper py-14" aria-label="TASTE MATTERS">
       <Reveal className="px-6">
-        <p className="label-track text-[10px] font-medium text-graphite">SINCE 1853</p>
-        <h2 className="brand-track mt-2 text-[26px] font-semibold leading-none text-ink">
-          TASTE MATTERS
-        </h2>
-        <p className="mt-3 max-w-[300px] text-[12.5px] leading-relaxed text-graphite">
+        <p className="label-track text-[10px] font-medium text-steel">SINCE 1853</p>
+        <h2 className="brand-track mt-2 text-[24px] font-semibold leading-none text-ink">TASTE MATTERS</h2>
+        <p className="copy-body mt-3 max-w-[300px] text-[12.5px] text-graphite">
           カテゴリーから探す。ドイツの哲学が息づく、上質なキッチンの道具たち。
         </p>
       </Reveal>
 
       <div
         ref={ref}
-        className="no-scrollbar snap-x-mandatory mt-7 flex gap-3 overflow-x-auto px-6 pb-1"
+        className="no-scrollbar snap-x-mandatory mt-8 flex gap-3 overflow-x-auto px-6 pb-1"
       >
         {categories.map((category) => (
           <button
             key={category.id}
             onClick={() => openCategory(category.id)}
-            className="press snap-start group relative h-[440px] w-[270px] shrink-0 overflow-hidden bg-mist text-left"
+            className="press snap-start group relative aspect-[2/3] h-[420px] w-[252px] shrink-0 overflow-hidden bg-signature text-left"
             aria-label={`${category.name} を開く`}
           >
             <Image
               src={category.image}
               alt={category.labelJa}
               fill
-              sizes="270px"
-              className="object-cover transition-transform duration-700 group-active:scale-[1.03]"
+              sizes="252px"
+              className="wmf-category-visual object-cover object-center transition-transform duration-700 group-active:scale-[1.02]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/70 via-ink/10 to-transparent" />
+            <div className="wmf-overlay-category absolute inset-0" />
             <div className="absolute inset-x-0 bottom-0 p-5">
-              <p className="brand-track text-[14px] font-semibold leading-snug text-paper">
+              <p className="brand-track text-[13px] font-semibold leading-snug text-paper">
                 {category.name}
               </p>
-              <p className="mt-1.5 text-[13px] font-medium text-paper/90">{category.labelJa}</p>
-              <span className="mt-3 inline-flex items-center gap-1 text-[11px] tracking-wide text-paper/80">
+              <p className="mt-2 text-[13px] font-normal text-paper/90">{category.labelJa}</p>
+              <span className="mt-4 inline-flex items-center gap-1 text-[11px] tracking-[0.12em] text-steel-mist">
                 見る
                 <ChevronRight className="h-3.5 w-3.5" />
               </span>
@@ -58,7 +56,7 @@ export function TasteMattersSection() {
         ))}
       </div>
 
-      <div className="mt-5 flex items-center justify-between px-6">
+      <div className="mt-6 flex items-center justify-between px-6">
         <div className="flex gap-1.5">
           {categories.map((category, i) => (
             <button
@@ -66,7 +64,7 @@ export function TasteMattersSection() {
               onClick={() => goTo(i)}
               aria-label={`${category.name} へ`}
               className={`h-1.5 rounded-full transition-all duration-300 ${
-                active === i ? "w-5 bg-ink" : "w-1.5 bg-metal"
+                active === i ? "w-5 bg-signature" : "w-1.5 bg-metal"
               }`}
             />
           ))}

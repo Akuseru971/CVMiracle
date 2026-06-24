@@ -2,16 +2,19 @@
 
 import { useState } from "react";
 import { footerSections } from "@/data/content";
+import { WmfLogo } from "@/components/WmfLogo";
 import { PlusIcon } from "@/components/icons";
 
 export function MobileFooter() {
   const [open, setOpen] = useState<string | null>(null);
 
   return (
-    <footer className="bg-ink pb-12 pt-12 text-paper">
+    <footer className="bg-steel-deep pb-12 pt-12 text-paper">
       <div className="px-6">
-        <span className="brand-track text-[24px] font-bold">WMF</span>
-        <p className="mt-3 max-w-[280px] text-[11.5px] leading-relaxed text-paper/60">
+        <div className="wmf-logo-zone inline-flex">
+          <WmfLogo variant="white" height={22} />
+        </div>
+        <p className="copy-body mt-4 max-w-[280px] text-[11.5px] text-paper/65">
           1853年より続く、ドイツNo.1キッチン＆テーブルウェアブランド。
         </p>
       </div>

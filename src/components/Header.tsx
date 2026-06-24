@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useUI } from "@/components/ui-context";
+import { WmfLogo } from "@/components/WmfLogo";
 import { AccountIcon, CartIcon, MenuIcon, SearchIcon } from "@/components/icons";
 
-const tapTarget = "press flex h-11 w-11 items-center justify-center text-ink";
+const tapBase = "press flex h-11 w-11 items-center justify-center";
 
 export function Header() {
   const { openSearch, cartCount, addToCart } = useUI();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 16);
+    const onScroll = () => setScrolled(window.scrollY > 48);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -21,17 +22,21 @@ export function Header() {
     document.getElementById("category-browse")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const onHero = !scrolled;
+  const iconClass = onHero ? "text-paper" : "text-ink";
+  const tapTarget = `${tapBase} ${iconClass}`;
+
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
-        scrolled
-          ? "bg-paper/85 backdrop-blur-md shadow-[0_1px_0_rgba(17,19,21,0.08)]"
-          : "bg-paper/95"
+      className={`fixed inset-x-0 top-0 z-40 transition-all duration-500 ${
+        onHero
+          ? "bg-gradient-to-b from-ink/55 via-ink/20 to-transparent backdrop-blur-[2px]"
+          : "bg-paper/92 backdrop-blur-md shadow-[0_1px_0_rgba(83,86,90,0.12)]"
       }`}
     >
-      <div className="mx-auto flex h-14 max-w-[480px] items-center justify-between px-3">
-        <a href="#top" className="press flex shrink-0 items-center py-2 pr-2" aria-label="WMF ホーム">
-          <span className="brand-track text-[22px] font-bold leading-none text-ink">WMF</span>
+      <div className="mx-auto flex h-[3.75rem] max-w-[480px] items-center justify-between px-4">
+        <a href="#top" className="wmf-logo-zone press flex shrink-0 items-center" aria-label="WMF ホーム">
+          <WmfLogo variant={onHero ? "white" : "black"} height={20} />
         </a>
 
         <div className="flex items-center">
@@ -48,7 +53,11 @@ export function Header() {
           >
             <CartIcon className="h-[22px] w-[22px]" />
             {cartCount > 0 && (
-              <span className="absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-ink px-1 text-[10px] font-semibold leading-none text-paper">
+              <span
+                className={`absolute right-1.5 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold leading-none ${
+                  onHero ? "bg-paper text-ink" : "bg-ink text-paper"
+                }`}
+              >
                 {cartCount}
               </span>
             )}

@@ -27,18 +27,18 @@ function GridItem({
     <button
       type="button"
       onClick={onClick}
-      className={`press flex min-h-[84px] items-center gap-3 border-b border-mist px-4 py-3.5 text-left ${
+      className={`press flex min-h-[88px] items-center gap-3 border-b border-mist px-4 py-4 text-left ${
         withRightBorder ? "border-r border-mist" : ""
       }`}
     >
-      <div className="relative h-14 w-14 shrink-0 overflow-hidden bg-cloud">
-        <Image src={image} alt="" fill sizes="56px" className="object-cover" aria-hidden />
+      <div className="relative h-[52px] w-[52px] shrink-0 overflow-hidden bg-cloud">
+        <Image src={image} alt="" fill sizes="52px" className="object-contain p-1" aria-hidden />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-[13px] font-semibold leading-snug text-ink">{title}</p>
-        <p className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-graphite">{subtitle}</p>
+        <p className="copy-body mt-1 line-clamp-2 text-[11px] text-silver">{subtitle}</p>
       </div>
-      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-silver" aria-hidden />
+      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-metal" aria-hidden />
     </button>
   );
 }
@@ -51,7 +51,7 @@ function CategoryGrid({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-2">
+    <div className="grid grid-cols-2 bg-paper">
       {items.map((item, index) => (
         <GridItem
           key={item.id}
@@ -74,7 +74,7 @@ function SeriesGrid({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="grid grid-cols-2">
+    <div className="grid grid-cols-2 bg-paper">
       {items.map((item, index) => (
         <GridItem
           key={item.id}
@@ -94,23 +94,21 @@ export function CategoryBrowseSection() {
   const { openCategory, openSeries } = useUI();
 
   return (
-    <section id="category-browse" className="bg-paper pb-2" aria-label="商品を探す">
+    <section id="category-browse" className="bg-cloud pb-2" aria-label="商品を探す">
       <Reveal className="px-6 pt-12">
-        <p className="label-track text-[10px] font-medium text-graphite">SHOP BY</p>
+        <p className="label-track text-[10px] font-medium text-steel">SHOP BY</p>
         <h2 className="mt-2 text-[20px] font-medium tracking-tight text-ink">商品を探す</h2>
-        <p className="mt-2 max-w-[320px] text-[12.5px] leading-relaxed text-graphite">
+        <p className="copy-body mt-2 max-w-[320px] text-[12.5px] text-graphite">
           カテゴリーまたはシリーズ・ブランドから、WMFの商品をお選びください。
         </p>
       </Reveal>
 
-      <div className="sticky top-14 z-30 mt-7 grid grid-cols-2 border-y border-mist bg-paper/95 backdrop-blur-sm">
+      <div className="sticky top-[3.75rem] z-30 mt-7 grid grid-cols-2 border-y border-mist bg-paper/95 backdrop-blur-sm">
         <button
           type="button"
           onClick={() => setActiveTab("categories")}
           className={`press min-h-[52px] px-3 py-3.5 text-[12px] font-medium leading-snug transition-colors duration-300 ${
-            activeTab === "categories"
-              ? "bg-ink text-paper"
-              : "bg-paper text-graphite"
+            activeTab === "categories" ? "bg-signature text-paper" : "bg-paper text-graphite"
           }`}
         >
           カテゴリーから探す
@@ -119,9 +117,7 @@ export function CategoryBrowseSection() {
           type="button"
           onClick={() => setActiveTab("series")}
           className={`press min-h-[52px] border-l border-mist px-3 py-3.5 text-[12px] font-medium leading-snug transition-colors duration-300 ${
-            activeTab === "series"
-              ? "bg-ink text-paper"
-              : "bg-paper text-graphite"
+            activeTab === "series" ? "bg-signature text-paper" : "bg-paper text-graphite"
           }`}
         >
           シリーズ・ブランドから探す

@@ -77,10 +77,10 @@ export function SearchLayer() {
             <div className="mt-3 grid grid-cols-2 gap-3">
               {recommended.map((p) => (
                 <button key={p.id} onClick={() => addToCart(p.name)} className="press text-left">
-                  <div className="relative aspect-square w-full overflow-hidden bg-cloud">
-                    <Image src={p.image} alt={p.name} fill sizes="160px" className="object-cover" />
+                  <div className="wmf-product-stage relative aspect-square w-full overflow-hidden">
+                    <Image src={p.image} alt={p.name} fill sizes="160px" className="object-contain p-2" />
                   </div>
-                  <p className="mt-2 line-clamp-2 text-[11.5px] leading-snug text-ink">{p.name}</p>
+                  <p className="product-name mt-2 line-clamp-2 text-[11.5px] text-ink">{p.name}</p>
                   <p className="mt-1 text-[12.5px] font-semibold text-ink">¥{p.price.toLocaleString("ja-JP")}</p>
                 </button>
               ))}

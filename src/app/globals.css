@@ -1,24 +1,42 @@
 @import "tailwindcss";
 
 /*
-  WMF Japan — Mobile design system
-  Palette: black / white / grey / metallic silver. Calm, premium, editorial.
+  WMF Corporate Design — mobile design system
+  Palette: official neutral, cool steel, and warm accent ranges.
+  Typography: Noto Sans JP + editorial Latin fallback (Cormorant Garamond).
 */
 @theme {
-  --color-ink: #111315;
-  --color-ink-soft: #2b2f33;
-  --color-graphite: #5b6166;
-  --color-silver: #9aa1a6;
-  --color-mist: #e7e9ea;
-  --color-cloud: #f4f5f6;
+  /* Neutral — Process Black / Cool Greys / White */
+  --color-ink: #000000;
+  --color-ink-soft: #53565a;
+  --color-graphite: #53565a;
+  --color-silver: #97999b;
+  --color-metal: #b1b3b3;
+  --color-mist: #d9d9d6;
+  --color-cloud: #f5f5f3;
   --color-paper: #ffffff;
-  --color-metal: #c7ccd0;
-  --color-sale: #b42318;
 
-  --font-sans: var(--font-noto-sans-jp), "Helvetica Neue", Arial, sans-serif;
+  /* Cool range — steel / atmosphere */
+  --color-steel: #41748d;
+  --color-steel-deep: #003865;
+  --color-steel-light: #7a99ac;
+  --color-steel-mist: #b6cfd0;
+  --color-signature: #274c60;
 
-  --tracking-brand: 0.42em;
-  --tracking-label: 0.28em;
+  /* Warm range — refined accents only */
+  --color-accent-gold: #c6893f;
+  --color-accent-warm: #c6a992;
+  --color-accent-bronze: #956c58;
+  --color-accent-campaign: #a45248;
+
+  --font-sans: var(--font-noto-sans-jp), "Yu Gothic", "Hiragino Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-editorial: var(--font-cormorant), "Times New Roman", Georgia, serif;
+
+  --tracking-brand: 0.38em;
+  --tracking-label: 0.26em;
+  --tracking-claim: 0.18em;
+
+  --leading-copy: 1.25;
 }
 
 :root {
@@ -33,12 +51,40 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: var(--leading-copy);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   overscroll-behavior-y: none;
 }
 
-/* Hide scrollbars on horizontal carousels while keeping native swipe. */
+/* ── Typography (WMF CD hierarchy) ── */
+.brand-track {
+  font-family: var(--font-editorial), var(--font-sans);
+  letter-spacing: var(--tracking-brand);
+  text-transform: uppercase;
+}
+
+.label-track {
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.claim-track {
+  letter-spacing: var(--tracking-claim);
+}
+
+.copy-body {
+  line-height: var(--leading-copy);
+  text-align: left;
+}
+
+.product-name {
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+}
+
+/* ── Layout utilities ── */
 .no-scrollbar {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -54,17 +100,48 @@ body {
   scroll-snap-align: start;
 }
 
-/* Spaced uppercase editorial labels (TASTE MATTERS direction). */
-.brand-track {
-  letter-spacing: var(--tracking-brand);
-  text-transform: uppercase;
-}
-.label-track {
-  letter-spacing: var(--tracking-label);
-  text-transform: uppercase;
+/* ── WMF visual language: atmosphere & staging ── */
+.wmf-overlay-hero {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.78) 0%,
+    rgba(0, 56, 101, 0.42) 38%,
+    rgba(198, 137, 63, 0.06) 72%,
+    rgba(0, 0, 0, 0.12) 100%
+  );
 }
 
-/* Scroll reveal — subtle fade + rise. */
+.wmf-overlay-editorial {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.82) 0%,
+    rgba(39, 76, 96, 0.45) 45%,
+    transparent 100%
+  );
+}
+
+.wmf-overlay-category {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.88) 0%,
+    rgba(0, 56, 101, 0.25) 50%,
+    transparent 100%
+  );
+}
+
+.wmf-category-visual {
+  filter: grayscale(100%) contrast(1.06) brightness(0.92);
+}
+
+.wmf-product-stage {
+  background: linear-gradient(165deg, var(--color-cloud) 0%, #eef1f2 48%, var(--color-mist) 100%);
+}
+
+.wmf-logo-zone {
+  padding: 0.625rem 0.875rem;
+}
+
+/* ── Scroll reveal ── */
 .reveal {
   opacity: 0;
   transform: translateY(22px);
@@ -85,7 +162,6 @@ body {
   }
 }
 
-/* Slide-in panel (category layer / search layer). */
 @keyframes panel-in {
   from {
     transform: translateX(100%);
@@ -109,7 +185,6 @@ body {
   animation: fade-in 0.28s ease-out both;
 }
 
-/* Soft press feedback for buttons / cards. */
 .press {
   transition: transform 0.15s ease, opacity 0.15s ease;
 }

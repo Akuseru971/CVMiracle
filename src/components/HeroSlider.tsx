@@ -13,11 +13,8 @@ export function HeroSlider() {
   });
 
   return (
-    <section className="relative" aria-label="ヒーロー">
-      <div
-        ref={ref}
-        className="no-scrollbar snap-x-mandatory flex overflow-x-auto"
-      >
+    <section className="relative bg-steel-deep" aria-label="ヒーロー">
+      <div ref={ref} className="no-scrollbar snap-x-mandatory flex overflow-x-auto">
         {heroSlides.map((slide, i) => (
           <div key={slide.id} className="snap-start relative h-[78vh] max-h-[640px] w-full shrink-0">
             <Image
@@ -26,17 +23,16 @@ export function HeroSlider() {
               fill
               priority={i === 0}
               sizes="100vw"
-              className="object-cover"
+              className="object-cover object-[center_35%]"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-ink/75 via-ink/25 to-ink/10" />
-            <div className="absolute inset-x-0 bottom-0 px-6 pb-16">
-              <p className="label-track text-[11px] font-medium text-paper/80">{slide.eyebrow}</p>
-              <h1 className="mt-3 text-[28px] font-medium leading-[1.3] tracking-tight text-paper">
+            <div className="wmf-overlay-hero absolute inset-0" />
+
+            <div className="absolute inset-x-0 bottom-0 px-6 pb-16 pt-24">
+              <p className="label-track text-[10px] font-medium text-steel-mist">{slide.eyebrow}</p>
+              <h1 className="claim-track mt-3 max-w-[320px] text-[26px] font-medium leading-[1.35] text-paper">
                 {slide.title}
               </h1>
-              <p className="mt-3 max-w-[300px] text-[13px] leading-relaxed text-paper/85">
-                {slide.subtitle}
-              </p>
+              <p className="copy-body mt-3 max-w-[300px] text-[13px] text-paper/85">{slide.subtitle}</p>
               <div className="mt-6 flex flex-col gap-2.5">
                 <button className="press h-12 w-full bg-paper text-[13px] font-medium tracking-wide text-ink">
                   {slide.primaryCta}
@@ -46,7 +42,7 @@ export function HeroSlider() {
                   onClick={() =>
                     document.getElementById("best-sellers")?.scrollIntoView({ behavior: "smooth", block: "start" })
                   }
-                  className="press h-12 w-full border border-paper/70 text-[13px] font-medium tracking-wide text-paper"
+                  className="press h-12 w-full border border-paper/60 text-[13px] font-medium tracking-wide text-paper"
                 >
                   {slide.secondaryCta}
                 </button>
@@ -56,23 +52,21 @@ export function HeroSlider() {
         ))}
       </div>
 
-      {/* Arrows */}
       <button
         onClick={prev}
         aria-label="前へ"
-        className="press absolute left-3 top-[38%] flex h-10 w-10 items-center justify-center rounded-full bg-paper/25 text-paper backdrop-blur-sm"
+        className="press absolute left-3 top-[42%] flex h-10 w-10 items-center justify-center rounded-full border border-paper/30 bg-ink/25 text-paper backdrop-blur-sm"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={next}
         aria-label="次へ"
-        className="press absolute right-3 top-[38%] flex h-10 w-10 items-center justify-center rounded-full bg-paper/25 text-paper backdrop-blur-sm"
+        className="press absolute right-3 top-[42%] flex h-10 w-10 items-center justify-center rounded-full border border-paper/30 bg-ink/25 text-paper backdrop-blur-sm"
       >
         <ChevronRight className="h-5 w-5" />
       </button>
 
-      {/* Dots */}
       <div className="absolute inset-x-0 bottom-6 flex justify-center gap-2">
         {heroSlides.map((slide, i) => (
           <button
@@ -80,7 +74,7 @@ export function HeroSlider() {
             onClick={() => goTo(i)}
             aria-label={`スライド ${i + 1}`}
             className={`h-1.5 rounded-full transition-all duration-300 ${
-              active === i ? "w-6 bg-paper" : "w-1.5 bg-paper/50"
+              active === i ? "w-6 bg-accent-warm" : "w-1.5 bg-paper/45"
             }`}
           />
         ))}
