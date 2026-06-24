@@ -24,13 +24,13 @@ export default function Home() {
         showRanking
         filters={bestSellerFilters}
       />
-      <FusiontecStory />
       <ProductCarousel
         eyebrow="NEW ARRIVALS"
         title="新着商品"
         products={newArrivals}
         tone="muted"
       />
+      <FusiontecStory />
       <ServiceCards />
       <RecipeSection />
       <NewsList />
