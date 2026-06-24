@@ -14,16 +14,19 @@ function GridItem({
   image,
   title,
   ariaLabel,
+  titleLang = "en",
   onClick,
   withRightBorder,
 }: {
   image: string;
   title: string;
   ariaLabel: string;
+  titleLang?: "ja" | "en";
   onClick: () => void;
   withRightBorder?: boolean;
 }) {
-  const compactTitle = title.length > 13;
+  const compactTitle =
+    titleLang === "ja" ? title.length > 8 : title.length > 13;
 
   return (
     <button
@@ -45,7 +48,14 @@ function GridItem({
         />
       </div>
       <p
-        className={`wmf-browse-label min-w-0 flex-1 ${compactTitle ? "text-[9px]" : "text-[10px]"}`}
+        lang={titleLang === "ja" ? "ja" : undefined}
+        className={
+          titleLang === "ja"
+            ? `min-w-0 flex-1 font-bold leading-[1.35] text-ink [line-break:strict] [word-break:keep-all] ${
+                compactTitle ? "text-[11px]" : "text-[12.5px]"
+              }`
+            : `wmf-browse-label min-w-0 flex-1 ${compactTitle ? "text-[9px]" : "text-[10px]"}`
+        }
       >
         {title}
       </p>
@@ -67,8 +77,9 @@ function CategoryGrid({
         <GridItem
           key={item.id}
           image={item.image}
-          title={item.name}
-          ariaLabel={`${item.name} — ${item.labelJa}`}
+          title={item.labelJa}
+          titleLang="ja"
+          ariaLabel={`${item.labelJa} — ${item.name}`}
           onClick={() => onSelect(item.id)}
           withRightBorder={index % 2 === 0}
         />
