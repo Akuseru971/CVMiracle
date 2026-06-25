@@ -116,7 +116,7 @@ export function CategoryLayer() {
           <div className="px-6 pt-8">
             <button
               type="button"
-              className="press h-12 w-full bg-ink text-[13px] font-medium tracking-wide text-paper"
+              className="press h-12 w-full bg-cta-gold text-[13px] font-medium tracking-wide text-ink"
             >
               {ctaLabel}
             </button>

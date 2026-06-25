@@ -38,7 +38,7 @@ export function FeatureSection() {
                   {slide.title}
                 </h3>
                 <p className="copy-body mt-2 max-w-[300px] text-[12.5px] text-paper/85">{slide.body}</p>
-                <button className="press mt-5 h-11 border border-paper/50 px-6 text-[12.5px] font-medium tracking-wide text-paper">
+                <button className="press mt-5 h-11 bg-cta-gold px-6 text-[12.5px] font-medium tracking-wide text-ink">
                   {slide.cta}
                 </button>
               </div>

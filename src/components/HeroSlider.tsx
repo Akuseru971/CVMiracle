@@ -34,7 +34,7 @@ export function HeroSlider() {
               </h1>
               <p className="copy-body mt-3 max-w-[300px] text-[13px] text-paper/85">{slide.subtitle}</p>
               <div className="mt-6 flex flex-col gap-2.5">
-                <button className="press h-12 w-full bg-paper text-[13px] font-medium tracking-wide text-ink">
+                <button className="press h-12 w-full bg-cta-gold text-[13px] font-medium tracking-wide text-ink">
                   {slide.primaryCta}
                 </button>
                 <button

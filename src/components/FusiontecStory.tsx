@@ -39,7 +39,7 @@ export function FusiontecStory() {
           ))}
         </div>
 
-        <button className="press mt-8 h-12 w-full bg-paper text-[13px] font-medium tracking-wide text-ink">
+        <button className="press mt-8 h-12 w-full bg-cta-gold text-[13px] font-medium tracking-wide text-ink">
           シリーズを見る
         </button>
       </Reveal>

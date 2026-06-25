@@ -169,7 +169,7 @@ export function ProductCarousel({
             </div>
             <button
               onClick={() => addToCart(product.name)}
-              className="press mt-3 h-10 w-full border border-ink text-[12px] font-medium tracking-wide text-ink"
+              className="press mt-3 h-10 w-full bg-cta-gold text-[12px] font-medium tracking-wide text-ink"
             >
               商品を見る
             </button>
