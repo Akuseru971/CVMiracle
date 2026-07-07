@@ -1,9 +1,9 @@
 "use client";
 
-import { UIProvider, useUI } from "@/components/ui-context";
 import { Header } from "@/components/Header";
 import { SearchLayer } from "@/components/SearchLayer";
 import { CategoryLayer } from "@/components/CategoryLayer";
+import { useUI } from "@/components/ui-context";
 
 function Toast() {
   const { toast } = useUI();
@@ -19,7 +19,7 @@ function Toast() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <UIProvider>
+    <>
       <Header />
       <main id="top" className="pt-[3.75rem]">
         {children}
@@ -27,6 +27,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SearchLayer />
       <CategoryLayer />
       <Toast />
-    </UIProvider>
+    </>
   );
 }
