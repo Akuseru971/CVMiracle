@@ -23,6 +23,35 @@ npm run dev
 Open http://localhost:3000 and view in a mobile viewport (designed for iPhone-size
 screens, max content width 480px).
 
+## Deployment (Vercel)
+
+**Public production URL:** https://cvmiracle.vercel.app
+
+This repo is linked to several Vercel projects. Only some URLs are publicly
+accessible:
+
+| Project | Production URL | Status |
+| --- | --- | --- |
+| `cvmiracle` | https://cvmiracle.vercel.app | Public, works |
+| `cv-miracle-r9xa` | https://cv-miracle-r9xa.vercel.app | Public, works |
+| `cv-miracle` | https://cv-miracle.vercel.app | **404 — no production deployment** |
+
+URLs like `https://cv-miracle-5npvm3v56-akuserus-projects.vercel.app` belong to
+the `cv-miracle` project, which has **Deployment Protection** enabled (Vercel
+login required) and no working production alias. That is a Vercel project setting,
+not an application bug.
+
+To fix the `cv-miracle` project in the Vercel dashboard:
+
+1. Open project **cv-miracle** → **Settings** → **Deployment Protection**
+2. Set protection to **Only Production Deployments** (or disable for previews)
+3. Under **Domains**, confirm `cv-miracle.vercel.app` is assigned and the latest
+   `main` deployment is promoted to Production
+4. Redeploy `main` if needed
+
+Alternatively, use https://cvmiracle.vercel.app and remove the duplicate
+`cv-miracle` project to avoid confusion.
+
 ## Scripts
 
 - `npm run dev` — start the dev server
