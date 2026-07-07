@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Noto_Sans_JP } from "next/font/google";
-import { Providers } from "./providers";
 import "./globals.css";
 
 const notoSansJP = Noto_Sans_JP({
@@ -35,9 +34,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="ja" className={`${notoSansJP.variable} ${cormorant.variable}`}>
-      <body className={`${notoSansJP.className} antialiased`}>
-        <Providers>{children}</Providers>
-      </body>
+      <body className={`${notoSansJP.className} antialiased`}>{children}</body>
     </html>
   );
 }
